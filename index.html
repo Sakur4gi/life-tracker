@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1D1D2B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Life Tracker">
+<title>Life Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap">
+<style>
+:root {
+  --bg: #1D1D2B; --panel: #24243A; --panel2: #2F2F46; --line: #3E3E57; --edge: #E8E5F2; --empty: #3A3A50;
+  --ink: #EDEBF5; --muted: #B4B1C6; --soft: #D9D6E8;
+  --gold: #F2C66D; --mint: #8FE0B0; --blue: #7FB4F0; --red: #FF8A7A; --grey: #B4B1C6;
+  --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --tabh: 84px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 15px/1.4 Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; font-variant-numeric: tabular-nums;
+  -webkit-text-size-adjust: 100%; overscroll-behavior-y: none; }
+b { font-weight: 600; color: var(--ink); }
+button { font: inherit; color: inherit; cursor: pointer; border-radius: 0; }
+button:active { transform: translate(1px, 1px); }
+input, select { font: inherit; font-size: 16px; color: var(--ink); background: var(--bg); border: 2px solid var(--line); border-radius: 0; }
+input:focus, select:focus { outline: none; border-color: var(--gold); }
+
+#screen { padding: calc(env(safe-area-inset-top) + 16px) 16px calc(var(--tabh) + env(safe-area-inset-bottom) + 96px);
+  display: flex; flex-direction: column; gap: 12px; max-width: 520px; margin: 0 auto; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 8px; }
+.head .sub { font-size: 13px; color: var(--muted); }
+.head h1 { margin: 0; font-family: var(--serif); font-size: 34px; line-height: 40px; font-weight: 600; letter-spacing: -0.01em; }
+.iconbtn { width: 44px; height: 44px; border: 2px solid var(--line); background: transparent; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+
+.card { display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 2px solid var(--line); background: var(--panel); }
+.card.strong { border-color: var(--edge); box-shadow: 4px 4px 0 #0E0E17; }
+.card.tap { cursor: pointer; }
+.lbl { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.lbl > span:first-child { font-size: 13px; color: var(--muted); }
+.lbl > span:last-child { font-size: 12px; color: var(--muted); text-align: right; }
+.big { font-size: 26px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; }
+.big small { font-size: 13px; font-weight: 400; color: var(--muted); }
+.note { font-size: 12px; line-height: 16px; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; line-height: 18px; }
+.blocks { display: flex; gap: 3px; }
+.blocks i { flex: 1; height: 10px; background: var(--empty); }
+.blocks.sq i { flex: none; width: 14px; height: 14px; }
+.c-gold { color: var(--gold); } .c-mint { color: var(--mint); } .c-red { color: var(--red); } .c-blue { color: var(--blue); } .c-muted { color: var(--muted); }
+
+.say { display: flex; gap: 12px; align-items: flex-start; }
+.faces { display: flex; flex-direction: column; gap: 4px; flex: none; }
+.faces span { display: flex; padding: 2px; background: #33334A; }
+.say .txt { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.say .who { font-size: 12px; font-weight: 600; }
+.say .headline { font-family: var(--serif); font-size: 18px; line-height: 24px; font-weight: 600; }
+.say p { margin: 0; font-size: 13px; line-height: 19px; color: var(--soft); }
+
+.item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 2px solid var(--panel2); cursor: pointer; }
+.item .t { font-size: 14px; line-height: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item .s { font-size: 12px; line-height: 16px; color: var(--muted); }
+.item .a { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.pocket { display: flex; flex-direction: column; gap: 5px; padding: 10px 0; border-top: 2px solid var(--panel2); }
+.hbar { display: flex; align-items: center; gap: 10px; font-size: 13px; line-height: 18px; }
+.hbar .n { width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hbar .b { flex: 1; height: 10px; background: var(--empty); } .hbar .b i { display: block; height: 10px; background: var(--blue); }
+.hbar .v { width: 84px; text-align: right; color: var(--muted); }
+
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { padding: 8px 12px; min-height: 40px; border: 2px solid var(--line); background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; }
+.chip.on { background: var(--gold); color: var(--bg); border-color: var(--edge); }
+.btn { height: 52px; border: 2px solid var(--edge); background: transparent; color: var(--ink); font-size: 16px; font-weight: 600; padding: 0 16px; }
+.btn.primary { background: var(--gold); color: var(--bg); box-shadow: 4px 4px 0 #0E0E17; }
+.btn.danger { border-color: var(--red); color: var(--red); }
+.btn.small { height: 40px; font-size: 14px; }
+
+.due { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; border: 2px dashed var(--gold); background: var(--panel); }
+.due .t { font-size: 14px; } .due .s { font-size: 12px; color: var(--muted); }
+.due .acts { display: flex; gap: 6px; flex: none; }
+
+/* floor with cats */
+.floor { position: fixed; left: 0; right: 0; bottom: calc(var(--tabh) + env(safe-area-inset-bottom)); height: 84px; background: var(--panel); border-top: 4px solid var(--empty); z-index: 1; }
+.floor .cat { position: absolute; bottom: 6px; display: flex; cursor: pointer; }
+.fa { animation: fa 1.6s steps(1) infinite; } .fb { opacity: 0; animation: fb 1.6s steps(1) infinite; }
+@keyframes fa { 0%, 49.99% { opacity: 1 } 50%, 100% { opacity: 0 } }
+@keyframes fb { 0%, 49.99% { opacity: 0 } 50%, 100% { opacity: 1 } }
+@media (prefers-reduced-motion: reduce) { .fa, .fb { animation: none } .fb { opacity: 0 } }
+
+/* tab bar + add button */
+#tabs { position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--tabh) + env(safe-area-inset-bottom)); padding: 0 8px env(safe-area-inset-bottom);
+  display: flex; background: #17172A; border-top: 2px solid var(--empty); z-index: 3; }
+#tabs button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding-top: 8px; border: 0; border-top: 3px solid transparent;
+  background: transparent; color: var(--muted); font-size: 12px; font-weight: 500; }
+#tabs button.on { color: var(--gold); border-top-color: var(--gold); font-weight: 600; }
+#fab { position: fixed; right: 20px; bottom: calc(var(--tabh) + env(safe-area-inset-bottom) + 16px); width: 56px; height: 56px; z-index: 4;
+  border: 2px solid var(--edge); background: var(--gold); color: var(--bg); font-size: 32px; line-height: 1; font-weight: 600; box-shadow: 4px 4px 0 #0E0E17; }
+
+/* sheets */
+.overlay { position: fixed; inset: 0; background: #000b; display: none; align-items: flex-end; justify-content: center; z-index: 10; }
+.overlay.open { display: flex; }
+.sheet { width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; background: var(--panel); border-top: 2px solid var(--edge);
+  padding: 18px 16px calc(env(safe-area-inset-bottom) + 18px); display: flex; flex-direction: column; gap: 14px; }
+.sheet h3 { margin: 0; font-family: var(--serif); font-size: 22px; line-height: 28px; font-weight: 600; }
+.sheet .msg { margin: 0; color: var(--soft); white-space: pre-line; font-size: 14px; line-height: 20px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > span { font-size: 12px; color: var(--muted); }
+.field input, .field select { height: 48px; padding: 0 12px; width: 100%; }
+.amount { display: flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--line); padding-bottom: 6px; }
+.amount span { font-size: 28px; font-weight: 600; color: var(--muted); }
+.amount input { border: 0; background: transparent; font-size: 36px; font-weight: 600; width: 100%; padding: 0; height: 48px; }
+.err { color: var(--red); font-size: 13px; white-space: pre-line; }
+.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+#banner { display: none; background: #5A2430; color: #fff; padding: 12px; font-weight: 600; font-size: 14px; border: 2px solid var(--red); }
+#toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 12px); transform: translateX(-50%); z-index: 20;
+  background: #0E0E17; border: 2px solid var(--edge); color: var(--ink); padding: 10px 16px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 90vw; text-align: center; }
+#toast.show { opacity: 1; }
+.empty { text-align: center; color: var(--muted); font-size: 13px; padding: 10px 0; }
+</style>
+</head>
+<body>
+<main id="screen"></main>
+<div id="floor"></div>
+<button id="fab" aria-label="Add">+</button>
+<nav id="tabs"></nav>
+<div class="overlay" id="sheet"><div class="sheet" id="sheetBody"></div></div>
+<div class="overlay" id="dialog"><div class="sheet">
+  <h3 id="dlgTitle"></h3><p class="msg" id="dlgMsg"></p>
+  <div class="btns"><button class="btn" id="dlgCancel">Cancel</button><button class="btn primary" id="dlgOk">OK</button></div>
+</div></div>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   0. PIXEL ART (generated from the locked mascot drawings)
+   ========================================================= */
+const SPRITES = {"lilyFace": "<svg width=\"60\" height=\"48\" viewBox=\"-1 -1 20 16\" shape-rendering=\"crispEdges\" role=\"img\" aria-label=\"Lily\" style=\"display:block;flex:none\"><rect x=\"3\" y=\"0\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"14\" y=\"0\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"2\" y=\"1\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"3\" y=\"1\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"4\" y=\"1\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"6\" y=\"1\" width=\"6\" height=\"1\" fill=\"#BCA684\"/><rect x=\"12\" y=\"1\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"14\" y=\"1\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"15\" y=\"1\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"2\" y=\"2\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"3\" y=\"2\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"4\" y=\"2\" width=\"2\" height=\"1\" fill=\"#553E30\"/><rect x=\"6\" y=\"2\" width=\"6\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"2\" width=\"2\" height=\"1\" fill=\"#553E30\"/><rect x=\"14\" y=\"2\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"15\" y=\"2\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"2\" y=\"3\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"3\" y=\"3\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"4\" y=\"3\" width=\"1\" height=\"1\" fill=\"#9C7262\"/><rect x=\"5\" y=\"3\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"8\" y=\"3\" width=\"5\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"13\" y=\"3\" width=\"1\" height=\"1\" fill=\"#9C7262\"/><rect x=\"14\" y=\"3\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"15\" y=\"3\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"2\" y=\"4\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"3\" y=\"4\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"4\" y=\"4\" width=\"2\" height=\"1\" fill=\"#9C7262\"/><rect x=\"6\" y=\"4\" width=\"2\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"8\" y=\"4\" width=\"4\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"4\" width=\"2\" height=\"1\" fill=\"#9C7262\"/><rect x=\"14\" y=\"4\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"15\" y=\"4\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"1\" y=\"5\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"2\" y=\"5\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"4\" y=\"5\" width=\"4\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"8\" y=\"5\" width=\"7\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"15\" y=\"5\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"16\" y=\"5\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"1\" y=\"6\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"2\" y=\"6\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"4\" y=\"6\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"5\" y=\"6\" width=\"1\" height=\"1\" fill=\"#2B2230\"/><rect x=\"6\" y=\"6\" width=\"6\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"6\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"13\" y=\"6\" width=\"1\" height=\"1\" fill=\"#2B2230\"/><rect x=\"14\" y=\"6\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"15\" y=\"6\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"16\" y=\"6\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"1\" y=\"7\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"2\" y=\"7\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"4\" y=\"7\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"6\" y=\"7\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"8\" y=\"7\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"10\" y=\"7\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"7\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"14\" y=\"7\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"15\" y=\"7\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"16\" y=\"7\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"1\" y=\"8\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"2\" y=\"8\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"4\" y=\"8\" width=\"2\" height=\"1\" fill=\"#5B9BE0\"/><rect x=\"6\" y=\"8\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"7\" y=\"8\" width=\"2\" height=\"1\" fill=\"#7D5E4B\"/><rect x=\"9\" y=\"8\" width=\"3\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"12\" y=\"8\" width=\"2\" height=\"1\" fill=\"#5B9BE0\"/><rect x=\"14\" y=\"8\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"15\" y=\"8\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"16\" y=\"8\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"0\" y=\"9\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"1\" y=\"9\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"2\" y=\"9\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"3\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F0A8AE\"/><rect x=\"5\" y=\"9\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"6\" y=\"9\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"8\" y=\"9\" width=\"2\" height=\"1\" fill=\"#D98A9A\"/><rect x=\"10\" y=\"9\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"12\" y=\"9\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"13\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F0A8AE\"/><rect x=\"15\" y=\"9\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"17\" y=\"9\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"0\" y=\"10\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"1\" y=\"10\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"3\" y=\"10\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"4\" y=\"10\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"6\" y=\"10\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"7\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E9D9BF\"/><rect x=\"8\" y=\"10\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"10\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E9D9BF\"/><rect x=\"11\" y=\"10\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"12\" y=\"10\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"13\" y=\"10\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"10\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"17\" y=\"10\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"1\" y=\"11\" width=\"2\" height=\"1\" fill=\"#BCA684\"/><rect x=\"3\" y=\"11\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"6\" y=\"11\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"8\" y=\"11\" width=\"2\" height=\"1\" fill=\"#E9D9BF\"/><rect x=\"10\" y=\"11\" width=\"2\" height=\"1\" fill=\"#553E30\"/><rect x=\"12\" y=\"11\" width=\"3\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"15\" y=\"11\" width=\"2\" height=\"1\" fill=\"#BCA684\"/><rect x=\"3\" y=\"12\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"4\" y=\"12\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"6\" y=\"12\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"8\" y=\"12\" width=\"6\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"12\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"3\" y=\"13\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"4\" y=\"13\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"7\" y=\"13\" width=\"1\" height=\"1\" fill=\"#FFFAF1\"/><rect x=\"8\" y=\"13\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"10\" y=\"13\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"11\" y=\"13\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"14\" y=\"13\" width=\"1\" height=\"1\" fill=\"#BCA684\"/></svg>", "liloFace": "<svg width=\"60\" height=\"48\" viewBox=\"-1 -1 20 16\" shape-rendering=\"crispEdges\" role=\"img\" aria-label=\"Lilo\" style=\"display:block;flex:none\"><rect x=\"3\" y=\"0\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"14\" y=\"0\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"2\" y=\"1\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"3\" y=\"1\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"4\" y=\"1\" width=\"10\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"14\" y=\"1\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"15\" y=\"1\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"2\" y=\"2\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"3\" y=\"2\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"4\" y=\"2\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"6\" y=\"2\" width=\"6\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"2\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"2\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"15\" y=\"2\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"2\" y=\"3\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"3\" y=\"3\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"4\" y=\"3\" width=\"1\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"5\" y=\"3\" width=\"3\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"8\" y=\"3\" width=\"5\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"13\" y=\"3\" width=\"1\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"14\" y=\"3\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"15\" y=\"3\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"2\" y=\"4\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"3\" y=\"4\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"4\" y=\"4\" width=\"2\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"6\" y=\"4\" width=\"2\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"8\" y=\"4\" width=\"4\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"4\" width=\"2\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"14\" y=\"4\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"15\" y=\"4\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"1\" y=\"5\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"2\" y=\"5\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"4\" y=\"5\" width=\"4\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"8\" y=\"5\" width=\"7\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"15\" y=\"5\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"16\" y=\"5\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"1\" y=\"6\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"2\" y=\"6\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"4\" y=\"6\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"5\" y=\"6\" width=\"1\" height=\"1\" fill=\"#2B2230\"/><rect x=\"6\" y=\"6\" width=\"6\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"6\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"13\" y=\"6\" width=\"1\" height=\"1\" fill=\"#2B2230\"/><rect x=\"14\" y=\"6\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"15\" y=\"6\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"16\" y=\"6\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"1\" y=\"7\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"2\" y=\"7\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"4\" y=\"7\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"6\" y=\"7\" width=\"6\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"7\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"14\" y=\"7\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"15\" y=\"7\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"16\" y=\"7\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"1\" y=\"8\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"2\" y=\"8\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"4\" y=\"8\" width=\"2\" height=\"1\" fill=\"#D9A23E\"/><rect x=\"6\" y=\"8\" width=\"6\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"8\" width=\"2\" height=\"1\" fill=\"#D9A23E\"/><rect x=\"14\" y=\"8\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"15\" y=\"8\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"16\" y=\"8\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"0\" y=\"9\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"1\" y=\"9\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"2\" y=\"9\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"3\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F8BCC6\"/><rect x=\"5\" y=\"9\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"8\" y=\"9\" width=\"2\" height=\"1\" fill=\"#EE9AA8\"/><rect x=\"10\" y=\"9\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"13\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F8BCC6\"/><rect x=\"15\" y=\"9\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"17\" y=\"9\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"0\" y=\"10\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"1\" y=\"10\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"3\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"4\" y=\"10\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"7\" y=\"10\" width=\"1\" height=\"1\" fill=\"#A89A8C\"/><rect x=\"8\" y=\"10\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"10\" y=\"10\" width=\"1\" height=\"1\" fill=\"#A89A8C\"/><rect x=\"11\" y=\"10\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"13\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"10\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"17\" y=\"10\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"1\" y=\"11\" width=\"2\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"3\" y=\"11\" width=\"5\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"8\" y=\"11\" width=\"2\" height=\"1\" fill=\"#A89A8C\"/><rect x=\"10\" y=\"11\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"11\" y=\"11\" width=\"4\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"15\" y=\"11\" width=\"2\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"3\" y=\"12\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"4\" y=\"12\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"6\" y=\"12\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"8\" y=\"12\" width=\"6\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"12\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"3\" y=\"13\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"4\" y=\"13\" width=\"4\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"8\" y=\"13\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"10\" y=\"13\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"11\" y=\"13\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"14\" y=\"13\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/></svg>", "lilyIdleA": "<svg width=\"108\" height=\"78\" viewBox=\"-1 -1 36 26\" shape-rendering=\"crispEdges\" role=\"img\" aria-label=\"Lily\" style=\"display:block;flex:none\"><rect x=\"11\" y=\"0\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"22\" y=\"0\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"1\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"11\" y=\"1\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"12\" y=\"1\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"14\" y=\"1\" width=\"6\" height=\"1\" fill=\"#BCA684\"/><rect x=\"20\" y=\"1\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"22\" y=\"1\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"23\" y=\"1\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"2\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"11\" y=\"2\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"12\" y=\"2\" width=\"2\" height=\"1\" fill=\"#553E30\"/><rect x=\"14\" y=\"2\" width=\"6\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"2\" width=\"2\" height=\"1\" fill=\"#553E30\"/><rect x=\"22\" y=\"2\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"23\" y=\"2\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"3\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"11\" y=\"3\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"12\" y=\"3\" width=\"1\" height=\"1\" fill=\"#9C7262\"/><rect x=\"13\" y=\"3\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"16\" y=\"3\" width=\"5\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"21\" y=\"3\" width=\"1\" height=\"1\" fill=\"#9C7262\"/><rect x=\"22\" y=\"3\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"23\" y=\"3\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"4\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"4\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"4\" width=\"2\" height=\"1\" fill=\"#9C7262\"/><rect x=\"14\" y=\"4\" width=\"2\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"16\" y=\"4\" width=\"4\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"4\" width=\"2\" height=\"1\" fill=\"#9C7262\"/><rect x=\"22\" y=\"4\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"4\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"5\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"5\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"5\" width=\"4\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"16\" y=\"5\" width=\"7\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"5\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"5\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"6\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"6\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"6\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"13\" y=\"6\" width=\"1\" height=\"1\" fill=\"#2B2230\"/><rect x=\"14\" y=\"6\" width=\"6\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"6\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"21\" y=\"6\" width=\"1\" height=\"1\" fill=\"#2B2230\"/><rect x=\"22\" y=\"6\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"6\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"6\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"7\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"7\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"7\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"14\" y=\"7\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"16\" y=\"7\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"18\" y=\"7\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"7\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"22\" y=\"7\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"7\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"7\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"8\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"8\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"8\" width=\"2\" height=\"1\" fill=\"#5B9BE0\"/><rect x=\"14\" y=\"8\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"15\" y=\"8\" width=\"2\" height=\"1\" fill=\"#7D5E4B\"/><rect x=\"17\" y=\"8\" width=\"3\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"20\" y=\"8\" width=\"2\" height=\"1\" fill=\"#5B9BE0\"/><rect x=\"22\" y=\"8\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"8\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"8\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"8\" y=\"9\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"9\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"10\" y=\"9\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"11\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F0A8AE\"/><rect x=\"13\" y=\"9\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"14\" y=\"9\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"16\" y=\"9\" width=\"2\" height=\"1\" fill=\"#D98A9A\"/><rect x=\"18\" y=\"9\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"20\" y=\"9\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"21\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F0A8AE\"/><rect x=\"23\" y=\"9\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"25\" y=\"9\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"8\" y=\"10\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"10\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"11\" y=\"10\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"12\" y=\"10\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"14\" y=\"10\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"15\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E9D9BF\"/><rect x=\"16\" y=\"10\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"18\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E9D9BF\"/><rect x=\"19\" y=\"10\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"20\" y=\"10\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"21\" y=\"10\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"22\" y=\"10\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"25\" y=\"10\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"11\" width=\"2\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"11\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"14\" y=\"11\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"16\" y=\"11\" width=\"2\" height=\"1\" fill=\"#E9D9BF\"/><rect x=\"18\" y=\"11\" width=\"2\" height=\"1\" fill=\"#553E30\"/><rect x=\"20\" y=\"11\" width=\"3\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"11\" width=\"2\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"12\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"12\" y=\"12\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"12\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"16\" y=\"12\" width=\"6\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"22\" y=\"12\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"13\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"12\" y=\"13\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"15\" y=\"13\" width=\"1\" height=\"1\" fill=\"#FFFAF1\"/><rect x=\"16\" y=\"13\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"18\" y=\"13\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"19\" y=\"13\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"22\" y=\"13\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"14\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"14\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"14\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"15\" y=\"14\" width=\"2\" height=\"1\" fill=\"#FFFAF1\"/><rect x=\"17\" y=\"14\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"20\" y=\"14\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"22\" y=\"14\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"14\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"26\" y=\"14\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"15\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"15\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"14\" y=\"15\" width=\"6\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"20\" y=\"15\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"22\" y=\"15\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"15\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"25\" y=\"15\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"26\" y=\"15\" width=\"1\" height=\"1\" fill=\"#7D5E4B\"/><rect x=\"27\" y=\"15\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"28\" y=\"15\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"16\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"16\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"14\" y=\"16\" width=\"6\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"20\" y=\"16\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"22\" y=\"16\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"16\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"25\" y=\"16\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"26\" y=\"16\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"28\" y=\"16\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"9\" y=\"17\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"17\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"11\" y=\"17\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"13\" y=\"17\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"17\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"15\" y=\"17\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"16\" y=\"17\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"19\" y=\"17\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"17\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"21\" y=\"17\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"22\" y=\"17\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"17\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"26\" y=\"17\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"27\" y=\"17\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"29\" y=\"17\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"8\" y=\"18\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"18\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"10\" y=\"18\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"11\" y=\"18\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"13\" y=\"18\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"18\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"15\" y=\"18\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"16\" y=\"18\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"19\" y=\"18\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"18\" width=\"5\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"25\" y=\"18\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"26\" y=\"18\" width=\"3\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"29\" y=\"18\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"8\" y=\"19\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"19\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"11\" y=\"19\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"12\" y=\"19\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"13\" y=\"19\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"19\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"16\" y=\"19\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"17\" y=\"19\" width=\"1\" height=\"1\" fill=\"#E8DCC6\"/><rect x=\"18\" y=\"19\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"19\" width=\"3\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"19\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"24\" y=\"19\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"25\" y=\"19\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"26\" y=\"19\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"28\" y=\"19\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"8\" y=\"20\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"20\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"11\" y=\"20\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"12\" y=\"20\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"13\" y=\"20\" width=\"10\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"20\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"24\" y=\"20\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"25\" y=\"20\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"26\" y=\"20\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"28\" y=\"20\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"9\" y=\"21\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"21\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"21\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"21\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"16\" y=\"21\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"18\" y=\"21\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"20\" y=\"21\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"22\" y=\"21\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"21\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"21\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"25\" y=\"21\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"26\" y=\"21\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"27\" y=\"21\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"22\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"22\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"12\" y=\"22\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"13\" y=\"22\" width=\"3\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"16\" y=\"22\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"17\" y=\"22\" width=\"3\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"20\" y=\"22\" width=\"2\" height=\"1\" fill=\"#553E30\"/><rect x=\"22\" y=\"22\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"22\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"24\" y=\"22\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"25\" y=\"22\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"11\" y=\"23\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"13\" y=\"23\" width=\"9\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"22\" y=\"23\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"23\" y=\"23\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/></svg>", "lilyIdleB": "<svg width=\"108\" height=\"78\" viewBox=\"-1 -1 36 26\" shape-rendering=\"crispEdges\" aria-hidden=\"true\" style=\"display:block;flex:none\"><rect x=\"11\" y=\"0\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"22\" y=\"0\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"1\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"11\" y=\"1\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"12\" y=\"1\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"14\" y=\"1\" width=\"6\" height=\"1\" fill=\"#BCA684\"/><rect x=\"20\" y=\"1\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"22\" y=\"1\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"23\" y=\"1\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"2\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"11\" y=\"2\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"12\" y=\"2\" width=\"2\" height=\"1\" fill=\"#553E30\"/><rect x=\"14\" y=\"2\" width=\"6\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"2\" width=\"2\" height=\"1\" fill=\"#553E30\"/><rect x=\"22\" y=\"2\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"23\" y=\"2\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"3\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"11\" y=\"3\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"12\" y=\"3\" width=\"1\" height=\"1\" fill=\"#9C7262\"/><rect x=\"13\" y=\"3\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"16\" y=\"3\" width=\"5\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"21\" y=\"3\" width=\"1\" height=\"1\" fill=\"#9C7262\"/><rect x=\"22\" y=\"3\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"23\" y=\"3\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"4\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"4\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"4\" width=\"2\" height=\"1\" fill=\"#9C7262\"/><rect x=\"14\" y=\"4\" width=\"2\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"16\" y=\"4\" width=\"4\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"4\" width=\"2\" height=\"1\" fill=\"#9C7262\"/><rect x=\"22\" y=\"4\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"4\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"5\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"5\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"5\" width=\"4\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"16\" y=\"5\" width=\"7\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"5\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"5\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"6\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"6\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"6\" width=\"2\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"14\" y=\"6\" width=\"9\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"6\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"6\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"7\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"7\" width=\"6\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"16\" y=\"7\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"18\" y=\"7\" width=\"5\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"7\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"7\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"8\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"8\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"8\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"14\" y=\"8\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"15\" y=\"8\" width=\"2\" height=\"1\" fill=\"#7D5E4B\"/><rect x=\"17\" y=\"8\" width=\"3\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"20\" y=\"8\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"22\" y=\"8\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"8\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"8\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"8\" y=\"9\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"9\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"10\" y=\"9\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"11\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F0A8AE\"/><rect x=\"13\" y=\"9\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"14\" y=\"9\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"16\" y=\"9\" width=\"2\" height=\"1\" fill=\"#D98A9A\"/><rect x=\"18\" y=\"9\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"20\" y=\"9\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"21\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F0A8AE\"/><rect x=\"23\" y=\"9\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"25\" y=\"9\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"8\" y=\"10\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"10\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"11\" y=\"10\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"12\" y=\"10\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"14\" y=\"10\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"15\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E9D9BF\"/><rect x=\"16\" y=\"10\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"18\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E9D9BF\"/><rect x=\"19\" y=\"10\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"20\" y=\"10\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"21\" y=\"10\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"22\" y=\"10\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"25\" y=\"10\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"11\" width=\"2\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"11\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"14\" y=\"11\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"16\" y=\"11\" width=\"2\" height=\"1\" fill=\"#E9D9BF\"/><rect x=\"18\" y=\"11\" width=\"2\" height=\"1\" fill=\"#553E30\"/><rect x=\"20\" y=\"11\" width=\"3\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"11\" width=\"2\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"12\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"12\" y=\"12\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"12\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"16\" y=\"12\" width=\"6\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"22\" y=\"12\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"13\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"12\" y=\"13\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"15\" y=\"13\" width=\"1\" height=\"1\" fill=\"#FFFAF1\"/><rect x=\"16\" y=\"13\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"18\" y=\"13\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"19\" y=\"13\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"22\" y=\"13\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"14\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"14\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"14\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"15\" y=\"14\" width=\"2\" height=\"1\" fill=\"#FFFAF1\"/><rect x=\"17\" y=\"14\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"20\" y=\"14\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"22\" y=\"14\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"14\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"26\" y=\"14\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"15\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"15\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"14\" y=\"15\" width=\"6\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"20\" y=\"15\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"22\" y=\"15\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"15\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"25\" y=\"15\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"26\" y=\"15\" width=\"1\" height=\"1\" fill=\"#7D5E4B\"/><rect x=\"27\" y=\"15\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"28\" y=\"15\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"16\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"16\" width=\"3\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"14\" y=\"16\" width=\"6\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"20\" y=\"16\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"22\" y=\"16\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"16\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"25\" y=\"16\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"26\" y=\"16\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"28\" y=\"16\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"9\" y=\"17\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"17\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"11\" y=\"17\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"13\" y=\"17\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"17\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"15\" y=\"17\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"16\" y=\"17\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"19\" y=\"17\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"17\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"21\" y=\"17\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"22\" y=\"17\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"17\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"26\" y=\"17\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"27\" y=\"17\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"29\" y=\"17\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"8\" y=\"18\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"18\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"10\" y=\"18\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"11\" y=\"18\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"13\" y=\"18\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"18\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"15\" y=\"18\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"16\" y=\"18\" width=\"3\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"19\" y=\"18\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"18\" width=\"5\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"25\" y=\"18\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"26\" y=\"18\" width=\"3\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"29\" y=\"18\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"8\" y=\"19\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"19\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"11\" y=\"19\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"12\" y=\"19\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"13\" y=\"19\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"19\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"16\" y=\"19\" width=\"1\" height=\"1\" fill=\"#F8F0E1\"/><rect x=\"17\" y=\"19\" width=\"1\" height=\"1\" fill=\"#E8DCC6\"/><rect x=\"18\" y=\"19\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"20\" y=\"19\" width=\"3\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"19\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"24\" y=\"19\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"25\" y=\"19\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"26\" y=\"19\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"28\" y=\"19\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"8\" y=\"20\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"9\" y=\"20\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"11\" y=\"20\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"12\" y=\"20\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"13\" y=\"20\" width=\"10\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"20\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"24\" y=\"20\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"25\" y=\"20\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"26\" y=\"20\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"28\" y=\"20\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"9\" y=\"21\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"10\" y=\"21\" width=\"2\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"12\" y=\"21\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"14\" y=\"21\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"16\" y=\"21\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"18\" y=\"21\" width=\"2\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"20\" y=\"21\" width=\"2\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"22\" y=\"21\" width=\"1\" height=\"1\" fill=\"#EFE3CF\"/><rect x=\"23\" y=\"21\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"24\" y=\"21\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"25\" y=\"21\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"26\" y=\"21\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"27\" y=\"21\" width=\"1\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"10\" y=\"22\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"11\" y=\"22\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"12\" y=\"22\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"13\" y=\"22\" width=\"3\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"16\" y=\"22\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"17\" y=\"22\" width=\"3\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"20\" y=\"22\" width=\"2\" height=\"1\" fill=\"#553E30\"/><rect x=\"22\" y=\"22\" width=\"1\" height=\"1\" fill=\"#DCCCB1\"/><rect x=\"23\" y=\"22\" width=\"1\" height=\"1\" fill=\"#553E30\"/><rect x=\"24\" y=\"22\" width=\"1\" height=\"1\" fill=\"#6B4F3F\"/><rect x=\"25\" y=\"22\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"11\" y=\"23\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"13\" y=\"23\" width=\"9\" height=\"1\" fill=\"#3C2B20\"/><rect x=\"22\" y=\"23\" width=\"1\" height=\"1\" fill=\"#BCA684\"/><rect x=\"23\" y=\"23\" width=\"2\" height=\"1\" fill=\"#3C2B20\"/></svg>", "liloIdleA": "<svg width=\"108\" height=\"78\" viewBox=\"-1 -1 36 26\" shape-rendering=\"crispEdges\" role=\"img\" aria-label=\"Lilo\" style=\"display:block;flex:none\"><rect x=\"11\" y=\"0\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"22\" y=\"0\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"1\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"1\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"1\" width=\"10\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"22\" y=\"1\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"1\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"2\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"2\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"2\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"2\" width=\"6\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"2\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"22\" y=\"2\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"2\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"3\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"3\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"12\" y=\"3\" width=\"1\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"13\" y=\"3\" width=\"3\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"16\" y=\"3\" width=\"5\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"21\" y=\"3\" width=\"1\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"22\" y=\"3\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"3\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"4\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"4\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"4\" width=\"2\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"14\" y=\"4\" width=\"2\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"16\" y=\"4\" width=\"4\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"4\" width=\"2\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"22\" y=\"4\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"4\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"5\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"5\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"5\" width=\"4\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"16\" y=\"5\" width=\"7\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"5\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"5\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"6\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"6\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"6\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"13\" y=\"6\" width=\"1\" height=\"1\" fill=\"#2B2230\"/><rect x=\"14\" y=\"6\" width=\"6\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"6\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"21\" y=\"6\" width=\"1\" height=\"1\" fill=\"#2B2230\"/><rect x=\"22\" y=\"6\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"6\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"6\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"7\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"7\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"7\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"14\" y=\"7\" width=\"6\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"7\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"22\" y=\"7\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"7\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"7\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"8\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"8\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"8\" width=\"2\" height=\"1\" fill=\"#D9A23E\"/><rect x=\"14\" y=\"8\" width=\"6\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"8\" width=\"2\" height=\"1\" fill=\"#D9A23E\"/><rect x=\"22\" y=\"8\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"8\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"8\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"8\" y=\"9\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"9\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"10\" y=\"9\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"11\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F8BCC6\"/><rect x=\"13\" y=\"9\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"9\" width=\"2\" height=\"1\" fill=\"#EE9AA8\"/><rect x=\"18\" y=\"9\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"21\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F8BCC6\"/><rect x=\"23\" y=\"9\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"25\" y=\"9\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"8\" y=\"10\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"10\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"11\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"12\" y=\"10\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"15\" y=\"10\" width=\"1\" height=\"1\" fill=\"#A89A8C\"/><rect x=\"16\" y=\"10\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"18\" y=\"10\" width=\"1\" height=\"1\" fill=\"#A89A8C\"/><rect x=\"19\" y=\"10\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"21\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"22\" y=\"10\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"25\" y=\"10\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"11\" width=\"2\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"11\" width=\"5\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"11\" width=\"2\" height=\"1\" fill=\"#A89A8C\"/><rect x=\"18\" y=\"11\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"19\" y=\"11\" width=\"4\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"11\" width=\"2\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"12\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"12\" y=\"12\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"12\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"12\" width=\"6\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"22\" y=\"12\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"13\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"12\" y=\"13\" width=\"4\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"16\" y=\"13\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"18\" y=\"13\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"19\" y=\"13\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"22\" y=\"13\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"14\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"14\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"14\" width=\"8\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"20\" y=\"14\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"22\" y=\"14\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"14\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"14\" width=\"2\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"15\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"15\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"14\" y=\"15\" width=\"6\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"20\" y=\"15\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"22\" y=\"15\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"15\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"25\" y=\"15\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"15\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"27\" y=\"15\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"28\" y=\"15\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"16\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"16\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"14\" y=\"16\" width=\"6\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"20\" y=\"16\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"22\" y=\"16\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"16\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"25\" y=\"16\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"16\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"28\" y=\"16\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"17\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"17\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"11\" y=\"17\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"13\" y=\"17\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"17\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"15\" y=\"17\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"17\" width=\"3\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"19\" y=\"17\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"17\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"21\" y=\"17\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"22\" y=\"17\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"17\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"17\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"27\" y=\"17\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"29\" y=\"17\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"8\" y=\"18\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"18\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"10\" y=\"18\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"11\" y=\"18\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"13\" y=\"18\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"18\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"15\" y=\"18\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"18\" width=\"3\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"19\" y=\"18\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"18\" width=\"5\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"25\" y=\"18\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"18\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"29\" y=\"18\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"8\" y=\"19\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"19\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"11\" y=\"19\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"12\" y=\"19\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"13\" y=\"19\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"19\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"19\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"17\" y=\"19\" width=\"1\" height=\"1\" fill=\"#F1EEE8\"/><rect x=\"18\" y=\"19\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"19\" width=\"3\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"19\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"24\" y=\"19\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"25\" y=\"19\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"19\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"28\" y=\"19\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"8\" y=\"20\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"20\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"11\" y=\"20\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"12\" y=\"20\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"13\" y=\"20\" width=\"10\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"20\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"24\" y=\"20\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"26\" y=\"20\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"28\" y=\"20\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"21\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"21\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"21\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"21\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"21\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"18\" y=\"21\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"21\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"22\" y=\"21\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"21\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"25\" y=\"21\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"26\" y=\"21\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"27\" y=\"21\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"22\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"22\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"12\" y=\"22\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"13\" y=\"22\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"22\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"17\" y=\"22\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"22\" width=\"4\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"22\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"25\" y=\"22\" width=\"2\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"23\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"13\" y=\"23\" width=\"12\" height=\"1\" fill=\"#C9C2B5\"/></svg>", "liloIdleB": "<svg width=\"108\" height=\"78\" viewBox=\"-1 -1 36 26\" shape-rendering=\"crispEdges\" aria-hidden=\"true\" style=\"display:block;flex:none\"><rect x=\"11\" y=\"0\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"22\" y=\"0\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"1\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"1\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"1\" width=\"10\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"22\" y=\"1\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"1\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"2\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"2\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"2\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"2\" width=\"6\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"2\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"22\" y=\"2\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"2\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"3\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"3\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"12\" y=\"3\" width=\"1\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"13\" y=\"3\" width=\"3\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"16\" y=\"3\" width=\"5\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"21\" y=\"3\" width=\"1\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"22\" y=\"3\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"3\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"4\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"4\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"4\" width=\"2\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"14\" y=\"4\" width=\"2\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"16\" y=\"4\" width=\"4\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"4\" width=\"2\" height=\"1\" fill=\"#F4B6C0\"/><rect x=\"22\" y=\"4\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"4\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"5\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"5\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"5\" width=\"4\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"16\" y=\"5\" width=\"7\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"5\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"5\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"6\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"6\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"6\" width=\"2\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"14\" y=\"6\" width=\"9\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"6\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"6\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"7\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"7\" width=\"13\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"7\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"7\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"8\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"8\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"8\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"14\" y=\"8\" width=\"6\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"8\" width=\"2\" height=\"1\" fill=\"#2B2230\"/><rect x=\"22\" y=\"8\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"8\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"8\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"8\" y=\"9\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"9\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"10\" y=\"9\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"11\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F8BCC6\"/><rect x=\"13\" y=\"9\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"9\" width=\"2\" height=\"1\" fill=\"#EE9AA8\"/><rect x=\"18\" y=\"9\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"21\" y=\"9\" width=\"2\" height=\"1\" fill=\"#F8BCC6\"/><rect x=\"23\" y=\"9\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"25\" y=\"9\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"8\" y=\"10\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"10\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"11\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"12\" y=\"10\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"15\" y=\"10\" width=\"1\" height=\"1\" fill=\"#A89A8C\"/><rect x=\"16\" y=\"10\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"18\" y=\"10\" width=\"1\" height=\"1\" fill=\"#A89A8C\"/><rect x=\"19\" y=\"10\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"21\" y=\"10\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"22\" y=\"10\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"25\" y=\"10\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"11\" width=\"2\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"11\" width=\"5\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"11\" width=\"2\" height=\"1\" fill=\"#A89A8C\"/><rect x=\"18\" y=\"11\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"19\" y=\"11\" width=\"4\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"11\" width=\"2\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"12\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"12\" y=\"12\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"12\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"12\" width=\"6\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"22\" y=\"12\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"13\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"12\" y=\"13\" width=\"4\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"16\" y=\"13\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"18\" y=\"13\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"19\" y=\"13\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"22\" y=\"13\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"14\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"14\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"14\" width=\"8\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"20\" y=\"14\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"22\" y=\"14\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"14\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"14\" width=\"2\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"15\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"15\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"14\" y=\"15\" width=\"6\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"20\" y=\"15\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"22\" y=\"15\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"15\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"25\" y=\"15\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"15\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"27\" y=\"15\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"28\" y=\"15\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"16\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"16\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"14\" y=\"16\" width=\"6\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"20\" y=\"16\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"22\" y=\"16\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"16\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"25\" y=\"16\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"16\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"28\" y=\"16\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"17\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"17\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"11\" y=\"17\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"13\" y=\"17\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"17\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"15\" y=\"17\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"17\" width=\"3\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"19\" y=\"17\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"17\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"21\" y=\"17\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"22\" y=\"17\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"17\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"17\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"27\" y=\"17\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"29\" y=\"17\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"8\" y=\"18\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"18\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"10\" y=\"18\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"11\" y=\"18\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"13\" y=\"18\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"18\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"15\" y=\"18\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"18\" width=\"3\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"19\" y=\"18\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"18\" width=\"5\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"25\" y=\"18\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"18\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"29\" y=\"18\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"8\" y=\"19\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"19\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"11\" y=\"19\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"12\" y=\"19\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"13\" y=\"19\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"19\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"19\" width=\"1\" height=\"1\" fill=\"#FFFFFF\"/><rect x=\"17\" y=\"19\" width=\"1\" height=\"1\" fill=\"#F1EEE8\"/><rect x=\"18\" y=\"19\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"19\" width=\"3\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"19\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"24\" y=\"19\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"25\" y=\"19\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"26\" y=\"19\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"28\" y=\"19\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"8\" y=\"20\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"20\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"11\" y=\"20\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"12\" y=\"20\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"13\" y=\"20\" width=\"10\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"23\" y=\"20\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"24\" y=\"20\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"26\" y=\"20\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"28\" y=\"20\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"9\" y=\"21\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"21\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"12\" y=\"21\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"14\" y=\"21\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"21\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"18\" y=\"21\" width=\"2\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"21\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"22\" y=\"21\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"23\" y=\"21\" width=\"2\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"25\" y=\"21\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"26\" y=\"21\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"27\" y=\"21\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"10\" y=\"22\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"22\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"12\" y=\"22\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"13\" y=\"22\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"16\" y=\"22\" width=\"1\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"17\" y=\"22\" width=\"3\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"20\" y=\"22\" width=\"4\" height=\"1\" fill=\"#E7E2D9\"/><rect x=\"24\" y=\"22\" width=\"1\" height=\"1\" fill=\"#FBFAF7\"/><rect x=\"25\" y=\"22\" width=\"2\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"11\" y=\"23\" width=\"1\" height=\"1\" fill=\"#C9C2B5\"/><rect x=\"13\" y=\"23\" width=\"12\" height=\"1\" fill=\"#C9C2B5\"/></svg>"};
+
+/* =========================================================
+   1. CONFIG
+   ========================================================= */
+const STORAGE_KEY = 'lifetracker.v1';           // main save (name kept so Step 1 data carries over)
+const PREVIOUS_KEY = 'lifetracker.v1.previous'; // copy of the save before the latest change
+const SCHEMA_VERSION = 2;
+const COLLECTIONS = ['pockets', 'categories', 'transactions', 'recurring', 'savingsGoals', 'workoutTypes', 'workouts', 'weights', 'reports'];
+const POCKET_COLORS = { pk_basic: '#7FB4F0', pk_invest: '#8FE0B0', pk_fun: '#F2C66D', pk_rent: '#B4B1C6' };
+
+/* =========================================================
+   2. SMALL HELPERS
+   ========================================================= */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+// Local date YYYY-MM-DD (not toISOString, which is UTC = yesterday before 7am in Jakarta)
+function todayStr(d = new Date()) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function parseDate(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function isValidDateStr(s) {
+  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const [y, m, d] = s.split('-').map(Number); const dt = new Date(y, m - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+}
+function formatIDR(n) { return (n < 0 ? '-' : '') + 'Rp ' + Math.abs(Math.round(n)).toLocaleString('id-ID'); }
+function num(n) { return Math.round(n).toLocaleString('id-ID'); }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+function niceDate(s) { const d = parseDate(s); return d.getDate() + ' ' + MONTHS[d.getMonth()].slice(0, 3); }
+function daysInMonth(y, m0) { return new Date(y, m0 + 1, 0).getDate(); }
+function lastWorkingDay(y, m0) { const d = new Date(y, m0 + 1, 0); while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1); return todayStr(d); }
+function weekStart(d = new Date()) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+function blocks(on, n, color, sq = false) {
+  on = Math.max(0, Math.min(n, on));
+  return `<span class="blocks${sq ? ' sq' : ''}">` + Array.from({ length: n }, (_, i) => `<i${i < on ? ` style="background:${color}"` : ''}></i>`).join('') + '</span>';
+}
+
+/* =========================================================
+   3. DATA STRUCTURE
+   Money is whole Rupiah, always positive; "type" says expense / income / refund.
+   Every expense or refund belongs to a pocket.
+   ========================================================= */
+function defaultData() {
+  const now = new Date().toISOString();
+  const cat = (id, name, type, pocketId = null) => ({ id, name, type, pocketId, archived: false });
+  const wt = (id, name, tracksDistance) => ({ id, name, tracksDistance, archived: false });
+  return {
+    schemaVersion: SCHEMA_VERSION, createdAt: now, updatedAt: now,
+    settings: {
+      currency: 'IDR', locale: 'id-ID', weekStartsOn: 1, weeklyWorkoutTarget: 4, budgetWarningPct: 80,
+      weightLogFrequency: 'weekly', waterTargetGlasses: 8,
+      ai: { enabled: false, apiKey: '', model: '' }
+    },
+    // kind: spend = daily money, save = money set aside (not counted as spending), bill = fixed bill
+    pockets: [
+      { id: 'pk_basic', name: 'Basic', budget: 3000000, kind: 'spend' },
+      { id: 'pk_invest', name: 'Menanam Uang', budget: 3000000, kind: 'save' },
+      { id: 'pk_fun', name: 'Foya-Foya', budget: 1000000, kind: 'spend' },
+      { id: 'pk_rent', name: 'Kosan', budget: 1000000, kind: 'bill' }
+    ],
+    categories: [
+      cat('cat_food', 'Food', 'expense', 'pk_basic'), cat('cat_transport', 'Transport', 'expense', 'pk_basic'),
+      cat('cat_groceries', 'Groceries', 'expense', 'pk_basic'), cat('cat_bills', 'Bills', 'expense', 'pk_basic'),
+      cat('cat_health', 'Health', 'expense', 'pk_basic'), cat('cat_family', 'Family', 'expense', 'pk_basic'),
+      cat('cat_entertainment', 'Fun', 'expense', 'pk_fun'), cat('cat_shopping', 'Shopping', 'expense', 'pk_fun'),
+      cat('cat_rent', 'Kosan', 'expense', 'pk_rent'), cat('cat_invest', 'Investing', 'expense', 'pk_invest'),
+      cat('cat_other', 'Other', 'expense', 'pk_basic'),
+      cat('inc_salary', 'Salary', 'income'), cat('inc_bonus', 'Bonus', 'income'), cat('inc_other', 'Other income', 'income')
+    ],
+    // { id, createdAt, type, amount, categoryId, pocketId, note, date, recurringId }
+    transactions: [],
+    // schedule: { kind: 'lastWorkingDay' } or { kind: 'dayOfMonth', day }
+    recurring: defaultRecurring(),
+    savingsGoals: [],
+    workoutTypes: [wt('wt_gym', 'Gym', false), wt('wt_run', 'Run', true), wt('wt_walk', 'Walk', true), wt('wt_other', 'Other', false)],
+    workouts: [],
+    weights: [],
+    reports: []
+  };
+}
+function defaultRecurring() {
+  return [
+    { id: 'rec_salary', name: 'Salary', type: 'income', amount: 8000000, categoryId: 'inc_salary', pocketId: null, schedule: { kind: 'lastWorkingDay' }, active: true, lastDoneMonth: null },
+    { id: 'rec_kosan', name: 'Kosan', type: 'expense', amount: 1000000, categoryId: 'cat_rent', pocketId: 'pk_rent', schedule: { kind: 'dayOfMonth', day: 1 }, active: true, lastDoneMonth: null },
+    { id: 'rec_invest', name: 'Menanam Uang', type: 'expense', amount: 3000000, categoryId: 'cat_invest', pocketId: 'pk_invest', schedule: { kind: 'dayOfMonth', day: 1 }, active: true, lastDoneMonth: null }
+  ];
+}
+
+// Upgrades older saves without losing anything
+function migrate(obj) {
+  if (!obj || typeof obj !== 'object') throw new Error('Not a Life Tracker save');
+  if ((obj.schemaVersion || 0) > SCHEMA_VERSION) throw new Error('This backup is from a newer version of the app');
+  const base = defaultData();
+  const out = { ...base, ...obj, settings: { ...base.settings, ...(obj.settings || {}) } };
+  out.settings.ai = { ...base.settings.ai, ...((obj.settings || {}).ai || {}) };
+  for (const key of COLLECTIONS) if (!Array.isArray(out[key])) out[key] = base[key];
+  if ((obj.schemaVersion || 1) < 2) {
+    // v1 → v2: add pockets, new categories, give each old expense a pocket, add salary/kosan/invest reminders
+    out.pockets = base.pockets;
+    const have = new Set(out.categories.map(c => c.id));
+    for (const c of base.categories) if (!have.has(c.id)) out.categories.push(c);
+    for (const c of out.categories) {
+      const def = base.categories.find(b => b.id === c.id);
+      if (c.type === 'expense' && !c.pocketId) c.pocketId = def ? def.pocketId : 'pk_basic';
+      if (c.type === 'income') c.pocketId = null;
+      delete c.emoji;
+    }
+    for (const t of out.transactions) {
+      if (t.type !== 'income' && !t.pocketId) t.pocketId = (out.categories.find(c => c.id === t.categoryId) || {}).pocketId || 'pk_basic';
+      if (t.type === 'income') t.pocketId = null;
+    }
+    if (!out.recurring.length) out.recurring = base.recurring;
+  }
+  out.schemaVersion = SCHEMA_VERSION;
+  return out;
+}
+function validateBackup(obj) {
+  if (!obj || typeof obj !== 'object') return 'File is not a Life Tracker backup.';
+  if (typeof obj.schemaVersion !== 'number') return 'File is missing the version number — not a Life Tracker backup.';
+  for (const key of ['categories', 'transactions', 'workouts', 'weights']) if (!Array.isArray(obj[key])) return `Backup is missing "${key}".`;
+  if (obj.schemaVersion > SCHEMA_VERSION) return 'This backup is from a newer version of the app.';
+  return null;
+}
+
+/* =========================================================
+   4. STORAGE — save on every change, keep the previous save
+   ========================================================= */
+let data;
+function load() {
+  let raw = null;
+  try { raw = localStorage.getItem(STORAGE_KEY); }
+  catch (e) { data = defaultData(); showBanner('⚠️ This browser is blocking storage. Nothing will be saved. Open the app from the Home Screen icon.'); return; }
+  if (!raw) { data = defaultData(); save(); return; }
+  try {
+    const parsed = JSON.parse(raw);
+    const wasOld = (parsed.schemaVersion || 1) < SCHEMA_VERSION;
+    data = migrate(parsed);
+    if (wasOld) save();
+  } catch (e) {
+    try { data = migrate(JSON.parse(localStorage.getItem(PREVIOUS_KEY))); showBanner('Main save was unreadable, so the previous save was restored.'); save(); }
+    catch (e2) { data = defaultData(); data.__doNotOverwrite = true; showBanner('⚠️ Saved data could not be read. Restore from a backup file in Settings. (Nothing was overwritten yet.)'); }
+  }
+}
+function save() {
+  if (data.__doNotOverwrite) delete data.__doNotOverwrite;
+  data.updatedAt = new Date().toISOString();
+  try {
+    const current = localStorage.getItem(STORAGE_KEY);
+    if (current) localStorage.setItem(PREVIOUS_KEY, current);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
+  } catch (e) { showBanner('⚠️ Could not save! Storage may be full. Export a backup now (Settings).'); return false; }
+}
+let persisted = null;
+async function askPersistentStorage() {
+  try { if (navigator.storage && navigator.storage.persist) return (await navigator.storage.persisted()) || (await navigator.storage.persist()); } catch (e) {}
+  return null;
+}
+
+/* =========================================================
+   5. VALIDATION — errors block saving, warnings ask first
+   ========================================================= */
+function validateTransaction(t, d = data) {
+  const errors = [], warnings = [];
+  if (!['expense', 'income', 'refund'].includes(t.type)) errors.push('Type must be expense, income or refund.');
+  if (typeof t.amount !== 'number' || !Number.isFinite(t.amount)) errors.push('Enter an amount.');
+  else {
+    if (t.amount <= 0) errors.push('Amount must be more than 0. For money back, use "Refund".');
+    else if (!Number.isInteger(t.amount)) errors.push('Rupiah amounts have no decimals.');
+    if (t.amount > 1e11) errors.push('Amount looks too large.');
+  }
+  const cat = d.categories.find(c => c.id === t.categoryId);
+  if (!cat) errors.push('Pick a category.');
+  else if (cat.type !== (t.type === 'income' ? 'income' : 'expense')) errors.push(`"${cat.name}" is not an ${t.type === 'income' ? 'income' : 'expense'} category.`);
+  if (t.type !== 'income' && !d.pockets.find(p => p.id === t.pocketId)) errors.push('Pick a pocket.');
+  if (!isValidDateStr(t.date)) errors.push('Date is not valid.');
+  else if (t.date > todayStr()) warnings.push('This date is in the future.');
+  if (t.note && t.note.length > 200) errors.push('Note is too long (max 200 characters).');
+  if (!errors.length && t.type === 'expense' && t.amount >= 5000000) warnings.push(`${formatIDR(t.amount)} is a big amount. Is it right?`);
+  return { errors, warnings };
+}
+function validateWorkout(w, d = data) {
+  const errors = [], warnings = [];
+  if (!d.workoutTypes.find(x => x.id === w.typeId)) errors.push('Pick a workout type.');
+  if (!Number.isInteger(w.durationMin) || w.durationMin < 1 || w.durationMin > 600) errors.push('Duration must be 1–600 minutes.');
+  if (!isValidDateStr(w.date)) errors.push('Date is not valid.'); else if (w.date > todayStr()) warnings.push('This workout date is in the future.');
+  return { errors, warnings };
+}
+function validateWeight(x) {
+  const errors = [], warnings = [];
+  if (typeof x.kg !== 'number' || !Number.isFinite(x.kg) || x.kg < 20 || x.kg > 350) errors.push('Weight must be between 20 and 350 kg.');
+  if (!isValidDateStr(x.date)) errors.push('Date is not valid.'); else if (x.date > todayStr()) warnings.push('This date is in the future.');
+  return { errors, warnings };
+}
+const VALIDATORS = { transactions: validateTransaction, workouts: validateWorkout, weights: validateWeight };
+
+/* =========================================================
+   6. ACTIONS — the only functions that change data
+   ========================================================= */
+function addRecord(collection, record, { force = false } = {}) {
+  const check = VALIDATORS[collection](record);
+  if (check.errors.length) return { ok: false, ...check };
+  if (check.warnings.length && !force) return { ok: false, needsConfirm: true, ...check };
+  const full = { id: uid(), createdAt: new Date().toISOString(), ...record };
+  data[collection].push(full);
+  if (record.recurringId) { const r = data.recurring.find(x => x.id === record.recurringId); if (r) r.lastDoneMonth = record.date.slice(0, 7); }
+  if (!save()) { data[collection].pop(); return { ok: false, errors: ['Save failed.'], warnings: [] }; }
+  return { ok: true, record: full, errors: [], warnings: [] };
+}
+function deleteRecord(collection, id) {
+  const i = data[collection].findIndex(r => r.id === id);
+  if (i < 0) return false;
+  const [removed] = data[collection].splice(i, 1);
+  if (!save()) { data[collection].splice(i, 0, removed); return false; }
+  return true;
+}
+function skipRecurring(id, ym) { const r = data.recurring.find(x => x.id === id); if (!r) return; r.lastDoneMonth = ym; save(); }
+
+/* =========================================================
+   7. CALCULATIONS
+   ========================================================= */
+const pocketOf = id => data.pockets.find(p => p.id === id);
+const catOf = id => data.categories.find(c => c.id === id);
+function signed(t) { return t.type === 'refund' ? -t.amount : t.amount; }
+
+function monthStats(ym = todayStr().slice(0, 7)) {
+  let income = 0, spent = 0, saved = 0;
+  const byPocket = {}, byCat = {};
+  for (const p of data.pockets) byPocket[p.id] = 0;
+  for (const t of data.transactions) {
+    if (!t.date.startsWith(ym)) continue;
+    if (t.type === 'income') { income += t.amount; continue; }
+    const v = signed(t), p = pocketOf(t.pocketId);
+    byPocket[t.pocketId] = (byPocket[t.pocketId] || 0) + v;
+    if (p && p.kind === 'save') saved += v;
+    else { spent += v; byCat[t.categoryId] = (byCat[t.categoryId] || 0) + v; }
+  }
+  return { income, spent, saved, left: income - spent - saved, byPocket, byCat };
+}
+function rangeSpent(from, to) { // spending (not savings) between two date strings, inclusive
+  let s = 0, n = 0;
+  for (const t of data.transactions) {
+    if (t.type === 'income' || t.date < from || t.date > to) continue;
+    const p = pocketOf(t.pocketId); if (p && p.kind === 'save') continue;
+    s += signed(t); n++;
+  }
+  return { spent: s, count: n };
+}
+// Daily allowance = what is left in the spend pockets (Basic + Foya-Foya) at the start of today ÷ days left (incl. today)
+function dailyPace(today = todayStr()) {
+  const ym = today.slice(0, 7), d = parseDate(today);
+  const daysLeft = daysInMonth(d.getFullYear(), d.getMonth()) - d.getDate() + 1;
+  let budget = 0, spentBefore = 0;
+  for (const p of data.pockets) if (p.kind === 'spend') budget += p.budget;
+  for (const t of data.transactions) {
+    if (t.type === 'income' || !t.date.startsWith(ym) || t.date >= today) continue;
+    const p = pocketOf(t.pocketId); if (p && p.kind === 'spend') spentBefore += signed(t);
+  }
+  return { pace: Math.max(0, Math.round((budget - spentBefore) / daysLeft)), daysLeft };
+}
+function pocketStatus(p, st) {
+  const used = st.byPocket[p.id] || 0, pct = p.budget ? Math.round(used / p.budget * 100) : 0;
+  const warn = data.settings.budgetWarningPct;
+  return { used, left: p.budget - used, pct, level: pct >= 100 ? 'over' : pct >= warn ? 'warn' : 'ok' };
+}
+function dueDate(r, ym) {
+  const [y, m] = ym.split('-').map(Number);
+  if (r.schedule.kind === 'lastWorkingDay') return lastWorkingDay(y, m - 1);
+  return ym + '-' + String(Math.min(r.schedule.day, daysInMonth(y, m - 1))).padStart(2, '0');
+}
+function dueItems(today = todayStr()) {
+  const ym = today.slice(0, 7);
+  return data.recurring.filter(r => r.active && r.lastDoneMonth !== ym && dueDate(r, ym) <= today).map(r => ({ r, date: dueDate(r, ym) }));
+}
+function nextPayday(today = todayStr()) {
+  const d = parseDate(today); let p = lastWorkingDay(d.getFullYear(), d.getMonth());
+  if (p < today) p = lastWorkingDay(d.getFullYear(), d.getMonth() + 1);
+  return { date: p, days: Math.round((parseDate(p) - parseDate(today)) / 864e5) };
+}
+function workoutsThisWeek() {
+  const from = todayStr(weekStart()), to = todayStr();
+  return new Set(data.workouts.filter(w => w.date >= from && w.date <= to).map(w => w.date)).size;
+}
+
+/* =========================================================
+   8. LILY & LILO — free, rule-based narrative summaries
+   Format: headline, 2–3 key points with bold numbers, one next step.
+   ========================================================= */
+function spendPocketsWorst(st) {
+  return data.pockets.filter(p => p.kind === 'spend').map(p => ({ p, ...pocketStatus(p, st) })).sort((a, b) => b.pct - a.pct)[0];
+}
+function lilyMonth() {
+  const st = monthStats(), today = todayStr(), { pace, daysLeft } = dailyPace(), basic = pocketOf('pk_basic');
+  const worst = spendPocketsWorst(st), pts = [];
+  if (basic) { const b = pocketStatus(basic, st); pts.push(`${esc(basic.name)} has <b>${formatIDR(b.left)}</b> left for <b>${daysLeft} days</b>, about <b>${formatIDR(Math.max(0, b.left) / daysLeft)}</b> a day.`); }
+  const top = Object.entries(st.byCat).filter(([id]) => { const p = pocketOf(catOf(id).pocketId); return !p || p.kind === 'spend'; }).sort((a, b) => b[1] - a[1])[0];
+  if (top && top[1] > 0) pts.push(`Top spend is <b>${esc(catOf(top[0]).name)}</b> at <b>${formatIDR(top[1])}</b>.`);
+  const rent = pocketOf('pk_rent');
+  if (rent) { const r = pocketStatus(rent, st); if (r.used > rent.budget) pts.push(`${esc(rent.name)} came in at <b>${formatIDR(r.used)}</b>, <b>${formatIDR(r.used - rent.budget)}</b> over.`); }
+  let head, next;
+  if (!data.transactions.some(t => t.date.startsWith(today.slice(0, 7)))) { head = 'A fresh month. Log your first expense.'; next = 'Tap <b>+</b> after your next purchase. It takes 10 seconds.'; }
+  else if (worst && worst.level === 'over') { head = `${worst.p.name} is over budget.`; next = `Pause ${esc(worst.p.name)} spending, or move money from another pocket.`; }
+  else if (worst && worst.level === 'warn') { head = `${worst.p.name} is at ${worst.pct}%. Time to slow down.`; next = `Keep ${esc(worst.p.name)} under <b>${formatIDR(Math.max(0, worst.left))}</b> until the month ends.`; }
+  else { head = 'On track this month.'; next = `Basic and Foya-Foya together allow <b>${formatIDR(pace)}</b> a day. Stay under it and every pocket ends in the green.`; }
+  return { head, pts: pts.slice(0, 3), next };
+}
+function homeSummary() {
+  const today = todayStr(), { spent } = rangeSpent(today, today), { pace } = dailyPace(), st = monthStats(), worst = spendPocketsWorst(st);
+  const w = workoutsThisWeek(), target = data.settings.weeklyWorkoutTarget, due = dueItems();
+  const lily = spent === 0 ? `Nothing spent yet today. You can spend up to <b>${formatIDR(pace)}</b> (Basic + Foya-Foya).`
+    : spent <= pace ? `Spent <b>${formatIDR(spent)}</b> today, under the <b>${formatIDR(pace)}</b> daily pace.`
+    : `Spent <b>${formatIDR(spent)}</b> today, <b>${formatIDR(spent - pace)}</b> over the daily pace.`;
+  const lilyExtra = worst && worst.level !== 'ok' ? ` ${esc(worst.p.name)} is at <b>${worst.pct}%</b>.` : '';
+  const lilo = w >= target ? `<b>${w} of ${target}</b> workouts this week. Target hit!` : `<b>${w} of ${target}</b> workouts this week. Gym logging arrives in the next update.`;
+  let head = spent > pace ? 'A spendy day. Easy does it tonight.' : worst && worst.level === 'over' ? `${worst.p.name} is over budget.` : 'A calm day so far.';
+  let next = due.length ? `Confirm <b>${esc(due[0].r.name)}</b> below so the pockets stay right.` : spent > pace ? `Skip extras for the rest of today to get back on pace.` : `Log each purchase as it happens; it keeps the numbers honest.`;
+  return { head, lily: lily + lilyExtra, lilo, next };
+}
+function afterSaveText(t) {
+  const st = monthStats(), cat = catOf(t.categoryId);
+  if (t.type === 'income') return { head: `${formatIDR(t.amount)} in. Nice.`, pts: [`This month: <b>${formatIDR(st.income)}</b> in, <b>${formatIDR(st.spent)}</b> spent.`], next: 'Confirm Kosan and Menanam Uang when they are due.' };
+  const p = pocketOf(t.pocketId), s = pocketStatus(p, st), { pace, daysLeft } = dailyPace();
+  const verb = t.type === 'refund' ? 'back into' : 'from';
+  const pts = [`<b>${formatIDR(t.amount)}</b> for ${esc(cat.name)} ${verb} <b>${esc(p.name)}</b>.`];
+  if (p.kind === 'save') pts.push(`Set aside this month: <b>${formatIDR(s.used)}</b> of <b>${formatIDR(p.budget)}</b>.`);
+  else if (s.left >= 0) pts.push(`${esc(p.name)} has <b>${formatIDR(s.left)}</b> left (${s.pct}% used).`);
+  else pts.push(`${esc(p.name)} is <b>${formatIDR(-s.left)}</b> over budget.`);
+  const today = rangeSpent(todayStr(), todayStr()).spent;
+  if (p.kind === 'spend') pts.push(`Today: <b>${formatIDR(today)}</b> of a <b>${formatIDR(pace)}</b> daily pace.`);
+  const head = p.kind === 'save' ? 'Money planted. 🌱' : p.kind === 'bill' ? (s.left < 0 ? `${p.name} paid, a bit above budget.` : `${p.name} paid. One less thing.`) : s.level === 'over' ? `${p.name} is over budget.` : s.level === 'warn' ? `Careful: ${p.name} is at ${s.pct}%.` : 'Saved. All good.';
+  const next = s.level === 'ok' || p.kind !== 'spend' ? '' : `About <b>${formatIDR(Math.max(0, s.left) / daysLeft)}</b> a day is left for ${esc(p.name)}.`;
+  return { head, pts, next };
+}
+
+/* =========================================================
+   9. EXPORT / IMPORT
+   ========================================================= */
+function toCSV(rows, cols) {
+  const cell = v => { if (v == null) return ''; const s = String(v); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  return '﻿' + [cols.map(c => c.label).join(','), ...rows.map(r => cols.map(c => cell(c.get(r))).join(','))].join('\r\n');
+}
+const byDate = (a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt);
+const EXPORTS = {
+  json: () => ({ name: `life-tracker-backup-${todayStr()}.json`, mime: 'application/json', text: JSON.stringify(data, null, 2) }),
+  transactions: () => ({ name: `transactions-${todayStr()}.csv`, mime: 'text/csv', text: toCSV([...data.transactions].sort(byDate), [
+    { label: 'date', get: r => r.date }, { label: 'type', get: r => r.type }, { label: 'category', get: r => (catOf(r.categoryId) || {}).name },
+    { label: 'pocket', get: r => (pocketOf(r.pocketId) || {}).name }, { label: 'amount_idr', get: r => r.amount },
+    { label: 'signed_amount_idr', get: r => r.type === 'expense' ? -r.amount : r.amount }, { label: 'note', get: r => r.note }, { label: 'id', get: r => r.id }]) })
+};
+async function exportFile({ name, mime, text }) {
+  const blob = new Blob([text], { type: mime });
+  try {
+    const file = new File([blob], name, { type: mime });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return toast('Exported ' + name); }
+  } catch (e) { if (e.name === 'AbortError') return toast('Export cancelled'); }
+  try {
+    const url = URL.createObjectURL(blob), a = Object.assign(document.createElement('a'), { href: url, download: name });
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000); toast('Downloaded ' + name);
+  } catch (e) { toast('Export failed'); }
+}
+async function importBackup(file) {
+  let parsed;
+  try { parsed = JSON.parse(await file.text()); } catch (e) { return ask('Import failed', 'That file is not valid JSON.', 'OK', false, true); }
+  const problem = validateBackup(parsed);
+  if (problem) return ask('Import failed', problem, 'OK', false, true);
+  const ok = await ask('Replace all data?', `Current: ${data.transactions.length} transactions.\nBackup: ${parsed.transactions.length} transactions.\n\nYour current data is kept as the "previous save", so you can undo once.`, 'Replace', true);
+  if (!ok) return;
+  const before = data; data = migrate(parsed);
+  if (!save()) { data = before; return; }
+  closeSheet(); render(); toast('Backup restored');
+}
+
+/* =========================================================
+   10. SELF-TEST — checks the rules without touching your data
+   ========================================================= */
+function runSelfTest() {
+  const base = defaultData(), today = todayStr(), future = todayStr(new Date(Date.now() + 3 * 864e5));
+  const tx = o => validateTransaction({ type: 'expense', amount: 25000, categoryId: 'cat_food', pocketId: 'pk_basic', note: '', date: today, ...o }, base);
+  const v1 = { schemaVersion: 1, categories: [{ id: 'cat_food', name: 'Food', type: 'expense' }, { id: 'inc_salary', name: 'Salary', type: 'income' }],
+    transactions: [{ id: 'a', type: 'expense', amount: 1000, categoryId: 'cat_food', date: today, createdAt: '' }, { id: 'b', type: 'income', amount: 5, categoryId: 'inc_salary', date: today, createdAt: '' }], workouts: [], weights: [] };
+  const m = migrate(JSON.parse(JSON.stringify(v1)));
+  const fakeRec = { schedule: { kind: 'lastWorkingDay' } };
+  const tests = [
+    ['Valid expense is accepted', tx({}).errors.length === 0],
+    ['Negative amount is rejected', tx({ amount: -5000 }).errors.length > 0],
+    ['Zero amount is rejected', tx({ amount: 0 }).errors.length > 0],
+    ['Decimal Rupiah is rejected', tx({ amount: 2500.5 }).errors.length > 0],
+    ['Refund is accepted', tx({ type: 'refund' }).errors.length === 0],
+    ['Expense without a pocket is rejected', tx({ pocketId: 'nope' }).errors.length > 0],
+    ['Income needs an income category', tx({ type: 'income' }).errors.length > 0],
+    ['Future date gives a warning, not a block', tx({ date: future }).errors.length === 0 && tx({ date: future }).warnings.length > 0],
+    ['Impossible date (30 Feb) is rejected', tx({ date: '2026-02-30' }).errors.length > 0],
+    ['Old (Step 1) data upgrades: expense gets Basic pocket', m.transactions[0].pocketId === 'pk_basic' && m.transactions[1].pocketId === null && m.pockets.length === 4],
+    ['Old data upgrade keeps every record', m.transactions.length === 2 && m.recurring.length === 3],
+    ['Payday Nov 2026 = Mon 30 Nov', dueDate(fakeRec, '2026-11') === '2026-11-30'],
+    ['Payday Jan 2027 = Fri 29 Jan (31st is Sunday)', dueDate(fakeRec, '2027-01') === '2027-01-29'],
+    ['Payday Feb 2027 = Fri 26 Feb (28th is Sunday)', dueDate(fakeRec, '2027-02') === '2027-02-26'],
+    ['Backup file round-trip works', validateBackup(JSON.parse(JSON.stringify(data))) === null],
+    ['CSV handles commas and quotes', toCSV([{ a: 'x, "y"' }], [{ label: 'a', get: r => r.a }]).includes('"x, ""y"""')],
+    ['Rupiah format is "Rp 25.000"', formatIDR(25000) === 'Rp 25.000'],
+    ['Storage is working', (() => { try { localStorage.setItem('lt.test', '1'); const v = localStorage.getItem('lt.test'); localStorage.removeItem('lt.test'); return v === '1'; } catch (e) { return false; } })()]
+  ];
+  return tests.map(([name, pass]) => ({ name, pass: !!pass }));
+}
+
+/* =========================================================
+   11. UI — shared bits
+   ========================================================= */
+function showBanner(msg) { let b = document.getElementById('banner'); if (!b) { b = document.createElement('div'); b.id = 'banner'; } b.textContent = msg; b.style.display = 'block'; bannerMsg = msg; }
+let bannerMsg = '';
+let toastTimer;
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800); }
+function ask(title, msg, okLabel = 'OK', danger = false, infoOnly = false) {
+  return new Promise(resolve => {
+    const dlg = document.getElementById('dialog'), ok = document.getElementById('dlgOk'), cancel = document.getElementById('dlgCancel');
+    document.getElementById('dlgTitle').textContent = title; document.getElementById('dlgMsg').textContent = msg;
+    ok.textContent = okLabel; ok.className = 'btn ' + (danger ? 'danger' : 'primary');
+    cancel.style.display = infoOnly ? 'none' : ''; ok.parentElement.style.gridTemplateColumns = infoOnly ? '1fr' : '1fr 1fr';
+    dlg.classList.add('open');
+    const done = v => { dlg.classList.remove('open'); ok.onclick = cancel.onclick = null; resolve(v); };
+    ok.onclick = () => done(true); cancel.onclick = () => done(false);
+  });
+}
+function openSheet(html) { document.getElementById('sheetBody').innerHTML = html; document.getElementById('sheet').classList.add('open'); }
+function closeSheet() { document.getElementById('sheet').classList.remove('open'); }
+document.getElementById('sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
+
+function say(who, head, lines) {
+  const names = who.split('+'), col = names[0] === 'lily' ? 'var(--gold)' : 'var(--mint)';
+  return `<div class="card strong"><div class="say"><span class="faces">${names.map(n => `<span>${SPRITES[n + 'Face'] || ''}</span>`).join('')}</span>
+<span class="txt"><span class="who" style="color:${col}">${names.map(n => n[0].toUpperCase() + n.slice(1)).join(' & ')}</span>
+<span class="headline">${esc(head)}</span>${lines.filter(Boolean).map(l => `<p>${l}</p>`).join('')}</span></div></div>`;
+}
+const ICONS = {
+  Home: '<path d="M3 10l8-6 8 6v9H3z"/><path d="M9 19v-5h4v5"/>',
+  Money: '<rect x="2" y="5" width="18" height="12"/><circle cx="11" cy="11" r="2.5"/>',
+  Gym: '<path d="M2 11h18M5 7v8M8 5v12M14 5v12M17 7v8"/>',
+  Review: '<rect x="3" y="4" width="16" height="15"/><path d="M3 8h16M7 2v4M15 2v4M7 12h3M7 15h7"/>'
+};
+const icon = (d, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${d}</svg>`;
+
+/* =========================================================
+   12. SCREENS
+   ========================================================= */
+let tab = 'Home', moneyPeriod = 'Month', showAll = false;
+
+function dueCards() {
+  return dueItems().map(({ r, date }) => `<div class="due"><span><span class="t">${esc(r.name)} · ${formatIDR(r.amount)}</span><br><span class="s">Due ${niceDate(date)} · ${r.type === 'income' ? 'income' : esc((pocketOf(r.pocketId) || {}).name)}</span></span>
+<span class="acts"><button class="btn small" data-skip="${r.id}">Skip</button><button class="btn small primary" data-due="${r.id}">Add</button></span></div>`).join('');
+}
+
+function homeScreen() {
+  const now = new Date(), today = todayStr(), sum = homeSummary(), st = monthStats(), { pace } = dailyPace(), sp = rangeSpent(today, today);
+  const w = workoutsThisWeek(), target = data.settings.weeklyWorkoutTarget;
+  return `<div class="head"><span><span class="sub">${DAYS[now.getDay()]} ${now.getDate()} ${MONTHS[now.getMonth()]}</span><h1>Today</h1></span>
+<button class="iconbtn" data-act="settings" aria-label="Settings">${icon('<circle cx="11" cy="11" r="3"/><path d="M11 2v3M11 17v3M2 11h3M17 11h3M4.6 4.6l2.1 2.1M15.3 15.3l2.1 2.1M4.6 17.4l2.1-2.1M15.3 6.7l2.1-2.1"/>', 20)}</button></div>
+${bannerMsg ? `<div id="banner" style="display:block">${esc(bannerMsg)}</div>` : ''}
+${say('lily+lilo', sum.head, [`<span class="c-gold"><b style="color:inherit">Lily</b></span> · ${sum.lily}`, `<span class="c-mint"><b style="color:inherit">Lilo</b></span> · ${sum.lilo}`, `<span class="c-muted">Next:</span> ${sum.next}`])}
+${dueCards()}
+<div class="grid2">
+<div class="card tap" data-go="Money" style="gap:6px;padding:12px"><span class="lbl"><span>Spent today</span><span>${sp.count} ${sp.count === 1 ? 'entry' : 'entries'}</span></span>
+<span class="big" style="font-size:22px">${formatIDR(sp.spent)}</span><span class="note">pace ${formatIDR(pace)}</span>${blocks(pace ? Math.round(sp.spent / pace * 10) : 0, 10, sp.spent > pace ? 'var(--red)' : 'var(--blue)')}</div>
+<div class="card tap" data-go="Money" style="gap:6px;padding:12px"><span class="lbl"><span>This month</span><span></span></span>
+<span class="row"><span>In</span><span class="c-mint">${num(st.income)}</span></span><span class="row"><span>Spent</span><span class="c-red">${num(st.spent)}</span></span>
+<span class="row"><span>Saved</span><span class="c-mint">${num(st.saved)}</span></span>${st.income ? `<span class="row"><b>Left</b><b>${num(st.left)}</b></span>` : ''}</div>
+</div>
+<div class="grid2">
+<div class="card tap" data-go="Gym" style="gap:6px;padding:12px"><span class="lbl"><span>Workout</span><span class="c-gold">this week</span></span>
+<span class="big" style="font-size:22px">${w} <small>of ${target}</small></span>${blocks(w, target, 'var(--mint)', true)}</div>
+<div class="card tap" data-go="Gym" style="gap:6px;padding:12px"><span class="lbl"><span>Water</span><span>soon</span></span>
+<span class="big" style="font-size:22px">0 <small>of ${data.settings.waterTargetGlasses} glasses</small></span>${blocks(0, data.settings.waterTargetGlasses, 'var(--blue)', true)}</div>
+</div>`;
+}
+
+function moneyScreen() {
+  const today = todayStr(), ym = today.slice(0, 7), d = parseDate(today), st = monthStats(ym), pd = nextPayday();
+  let periodStats;
+  if (moneyPeriod === 'Today') periodStats = { ...rangeSpent(today, today), label: 'today' };
+  else if (moneyPeriod === 'Week') periodStats = { ...rangeSpent(todayStr(weekStart()), today), label: 'this week' };
+  const top = Object.entries(st.byCat).filter(e => e[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 5), topMax = top.length ? top[0][1] : 1;
+  const lily = lilyMonth();
+  const list = [...data.transactions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
+  const shown = showAll ? list : list.slice(0, 6);
+  const summary = moneyPeriod === 'Month'
+    ? `<div class="grid3"><span><span class="note">Income</span><br><b class="c-mint" style="font-size:17px">${num(st.income)}</b></span><span><span class="note">Spent</span><br><b class="c-red" style="font-size:17px">${num(st.spent)}</b></span><span><span class="note">Saved</span><br><b class="c-mint" style="font-size:17px">${num(st.saved)}</b></span></div>${st.income ? `<span class="row"><span class="c-muted">Left this month</span><b>${formatIDR(st.left)}</b></span>` : `<span class="note">Salary not logged yet this month, so "left" shows after payday.</span>`}`
+    : `<span class="lbl"><span>Spent ${periodStats.label}</span><span>${periodStats.count} entries</span></span><span class="big">${formatIDR(periodStats.spent)}</span>`;
+  return `<div class="head"><span><span class="sub">${MONTHS[d.getMonth()]} ${d.getFullYear()}</span><h1>Money</h1></span>
+<span class="note c-mint" style="padding-bottom:6px">${pd.days === 0 ? 'Payday today' : `Salary in ${pd.days} day${pd.days === 1 ? '' : 's'}`}</span></div>
+<div class="chips">${['Today', 'Week', 'Month'].map(p => `<button class="chip${p === moneyPeriod ? ' on' : ''}" data-period="${p}">${p}</button>`).join('')}</div>
+<div class="card" style="gap:6px;padding:12px">${summary}</div>
+${dueCards()}
+${say('lily', lily.head, [...lily.pts, `<span class="c-muted">Next:</span> ${lily.next}`])}
+<div class="card" style="gap:0"><span class="lbl" style="padding-bottom:6px"><span>Pockets</span><span>Total ${formatIDR(data.pockets.reduce((s, p) => s + p.budget, 0))}</span></span>
+${data.pockets.map(p => { const s = pocketStatus(p, st), col = POCKET_COLORS[p.id] || 'var(--blue)';
+  const right = p.kind === 'save' ? `<span class="c-mint">${formatIDR(s.used)} set aside</span>` : s.left < 0 ? `<span class="c-red">Over by ${formatIDR(-s.left)}</span>` : `<span class="${s.level === 'warn' ? 'c-gold' : 'c-muted'}">${formatIDR(s.left)} left</span>`;
+  return `<div class="pocket"><span class="row" style="font-size:14px"><b>${esc(p.name)}</b>${right}</span>${blocks(Math.round(s.pct / 10), 10, s.level === 'over' && p.kind !== 'save' ? 'var(--red)' : col)}
+<span class="note">${formatIDR(s.used)} of ${formatIDR(p.budget)} · ${s.pct}%</span></div>`; }).join('')}</div>
+<div class="card" style="gap:8px"><span class="lbl"><span>Top categories · month</span><span></span></span>
+${top.length ? top.map(([id, v]) => `<span class="hbar"><span class="n">${esc(catOf(id).name)}</span><span class="b"><i style="width:${Math.round(v / topMax * 100)}%"></i></span><span class="v">${num(v)}</span></span>`).join('') : '<span class="empty">No spending yet this month.</span>'}</div>
+<div class="card" style="gap:0"><span class="lbl" style="padding-bottom:6px"><span>${showAll ? 'All entries' : 'Recent'}</span>${list.length > 6 ? `<button class="chip" style="min-height:32px;padding:4px 10px" data-act="toggleAll">${showAll ? 'Show less' : 'See all'}</button>` : '<span></span>'}</span>
+${shown.length ? shown.map(txRow).join('') : '<span class="empty">Nothing yet. Tap + to log your first one.</span>'}</div>`;
+}
+function txRow(t) {
+  const c = catOf(t.categoryId) || { name: '?' }, p = pocketOf(t.pocketId), sign = t.type === 'expense' ? '− ' : '+ ';
+  const col = t.type === 'income' ? 'c-mint' : t.type === 'refund' ? 'c-blue' : '';
+  return `<div class="item" data-tx="${t.id}"><span style="min-width:0"><div class="t">${esc(t.note || c.name)}</div><div class="s">${esc(c.name)} · ${t.type === 'income' ? 'Income' : esc(p ? p.name : '?')} · ${niceDate(t.date)}${t.type === 'refund' ? ' · refund' : ''}</div></span>
+<span class="a ${col}">${sign}${formatIDR(t.amount)}</span></div>`;
+}
+function soonScreen(name, who, text) {
+  return `<div class="head"><span><span class="sub">Coming in the next step</span><h1>${name}</h1></span></div>
+${say(who, `${name} is being built.`, [text])}`;
+}
+
+function renderFloor() {
+  const f = document.getElementById('floor');
+  if (tab !== 'Home') { f.innerHTML = ''; return; }
+  f.innerHTML = `<div class="floor"><span class="cat" style="left:24px" data-go="Money" aria-label="Lily: open Money">
+<span class="fa" style="display:flex">${SPRITES.lilyIdleA}</span><span class="fb" style="position:absolute;inset:0;display:flex">${SPRITES.lilyIdleB}</span></span>
+<span class="cat" style="left:140px" data-go="Gym" aria-label="Lilo: open Gym">
+<span class="fb" style="display:flex">${SPRITES.liloIdleA}</span><span class="fa" style="position:absolute;inset:0;display:flex">${SPRITES.liloIdleB}</span></span></div>`;
+}
+function render() {
+  const s = document.getElementById('screen');
+  s.innerHTML = tab === 'Home' ? homeScreen() : tab === 'Money' ? moneyScreen()
+    : tab === 'Gym' ? soonScreen('Gym', 'lilo', 'Workouts by muscle group, heroic Lilo, water and food come in Step 3.')
+    : soonScreen('Weekly review', 'lily+lilo', 'The weekly review comes after gym logging, so it can include both money and fitness.');
+  document.getElementById('tabs').innerHTML = Object.keys(ICONS).map(n => `<button class="${n === tab ? 'on' : ''}" data-tab="${n}">${icon(ICONS[n])}${n}</button>`).join('');
+  renderFloor();
+}
+
+/* =========================================================
+   13. ADD SHEET — expense / income / refund in under 10 seconds
+   ========================================================= */
+let draft = null;
+function newDraft(o = {}) {
+  const lastCat = (data.transactions.filter(t => t.type === 'expense').slice(-1)[0] || {}).categoryId || 'cat_food';
+  return { type: 'expense', amount: '', categoryId: lastCat, pocketId: (catOf(lastCat) || {}).pocketId || 'pk_basic', note: '', date: todayStr(), recurringId: null, ...o };
+}
+function openAdd(o) { draft = newDraft(o); drawAdd(); setTimeout(() => { const a = document.getElementById('amt'); if (a) a.focus(); }, 60); }
+function drawAdd(err = '') {
+  const cats = data.categories.filter(c => !c.archived && c.type === (draft.type === 'income' ? 'income' : 'expense'));
+  if (!cats.find(c => c.id === draft.categoryId)) { draft.categoryId = cats[0].id; draft.pocketId = cats[0].pocketId; }
+  openSheet(`<h3>${draft.recurringId ? esc((data.recurring.find(r => r.id === draft.recurringId) || {}).name || 'Add') : 'Add money'}</h3>
+<div class="chips">${[['expense', 'Expense'], ['income', 'Income'], ['refund', 'Refund']].map(([v, l]) => `<button class="chip${draft.type === v ? ' on' : ''}" data-type="${v}">${l}</button>`).join('')}</div>
+<label class="amount"><span>Rp</span><input id="amt" inputmode="numeric" autocomplete="off" placeholder="0" value="${draft.amount ? num(draft.amount) : ''}" aria-label="Amount"></label>
+<div class="field"><span>Category</span><div class="chips">${cats.map(c => `<button class="chip${c.id === draft.categoryId ? ' on' : ''}" data-cat="${c.id}">${esc(c.name)}</button>`).join('')}</div></div>
+${draft.type !== 'income' ? `<div class="field"><span>Pocket</span><div class="chips">${data.pockets.map(p => `<button class="chip${p.id === draft.pocketId ? ' on' : ''}" data-pocket="${p.id}">${esc(p.name)}</button>`).join('')}</div></div>` : ''}
+<div class="grid2"><label class="field"><span>Note (optional)</span><input id="note" maxlength="200" value="${esc(draft.note)}" placeholder="e.g. Kopi"></label>
+<label class="field"><span>Date</span><input id="date" type="date" value="${draft.date}" max="${todayStr()}"></label></div>
+${err ? `<div class="err">${esc(err)}</div>` : ''}
+<div class="btns"><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="saveTx">Save</button></div>`);
+  const amt = document.getElementById('amt');
+  amt.addEventListener('input', () => {
+    const digits = amt.value.replace(/\D/g, '').slice(0, 11);
+    draft.amount = digits ? Number(digits) : ''; amt.value = digits ? num(draft.amount) : '';
+  });
+  amt.addEventListener('keydown', e => { if (e.key === 'Enter') saveTx(); });
+  document.getElementById('note').addEventListener('input', e => draft.note = e.target.value);
+  document.getElementById('date').addEventListener('change', e => draft.date = e.target.value);
+}
+async function saveTx() {
+  const rec = { type: draft.type, amount: draft.amount === '' ? NaN : draft.amount, categoryId: draft.categoryId,
+    pocketId: draft.type === 'income' ? null : draft.pocketId, note: draft.note.trim(), date: draft.date, recurringId: draft.recurringId };
+  let res = addRecord('transactions', rec);
+  if (res.needsConfirm) {
+    const ok = await ask('Are you sure?', res.warnings.join('\n') + '\n\nSave it anyway?', 'Save anyway');
+    if (!ok) return;
+    res = addRecord('transactions', rec, { force: true });
+  }
+  if (!res.ok) return drawAdd(res.errors.join('\n'));
+  render(); showAfterSave(res.record);
+}
+function showAfterSave(t) {
+  const s = afterSaveText(t);
+  openSheet(`${say('lily', s.head, [...s.pts, s.next && `<span class="c-muted">Next:</span> ${s.next}`])}
+<div class="btns"><button class="btn" data-act="addAnother">Add another</button><button class="btn primary" data-act="close">Done</button></div>`);
+}
+function showTx(id) {
+  const t = data.transactions.find(x => x.id === id); if (!t) return;
+  const c = catOf(t.categoryId) || { name: '?' }, p = pocketOf(t.pocketId);
+  openSheet(`<h3>${esc(t.note || c.name)}</h3>
+<div class="card" style="gap:6px"><span class="row"><span class="c-muted">Amount</span><b>${formatIDR(t.amount)}</b></span><span class="row"><span class="c-muted">Type</span><span>${t.type}</span></span>
+<span class="row"><span class="c-muted">Category</span><span>${esc(c.name)}</span></span>${p ? `<span class="row"><span class="c-muted">Pocket</span><span>${esc(p.name)}</span></span>` : ''}
+<span class="row"><span class="c-muted">Date</span><span>${niceDate(t.date)} ${t.date.slice(0, 4)}</span></span></div>
+<div class="btns"><button class="btn danger" data-del="${t.id}">Delete</button><button class="btn primary" data-act="close">Close</button></div>`);
+}
+
+/* =========================================================
+   14. SETTINGS — budgets, salary, due days, backup, checks
+   ========================================================= */
+async function openSettings() {
+  const tests = runSelfTest(), passed = tests.filter(t => t.pass).length;
+  const rec = id => data.recurring.find(r => r.id === id) || {};
+  openSheet(`<h3>Settings</h3>
+<div class="card" style="gap:10px"><span class="lbl"><span>Pocket budgets (per month)</span><span></span></span>
+${data.pockets.map(p => `<label class="field"><span>${esc(p.name)}</span><input inputmode="numeric" data-budget="${p.id}" value="${num(p.budget)}"></label>`).join('')}</div>
+<div class="card" style="gap:10px"><span class="lbl"><span>Recurring</span><span>shown as "Due" cards</span></span>
+<label class="field"><span>Salary amount (last working day)</span><input inputmode="numeric" data-recamt="rec_salary" value="${num(rec('rec_salary').amount || 0)}"></label>
+<div class="grid2"><label class="field"><span>Kosan due day</span><input inputmode="numeric" data-recday="rec_kosan" value="${(rec('rec_kosan').schedule || {}).day || 1}"></label>
+<label class="field"><span>Menanam Uang due day</span><input inputmode="numeric" data-recday="rec_invest" value="${(rec('rec_invest').schedule || {}).day || 1}"></label></div></div>
+<button class="btn primary" data-act="saveSettings">Save settings</button>
+<div class="card" style="gap:8px"><span class="lbl"><span>Backup</span><span>${data.transactions.length} transactions</span></span>
+<div class="btns"><button class="btn small" data-export="json">Export backup</button><button class="btn small" data-export="transactions">Export CSV</button></div>
+<button class="btn small" data-act="import">Restore from backup…</button></div>
+<div class="card" style="gap:6px"><span class="lbl"><span>App check</span><span class="${passed === tests.length ? 'c-mint' : 'c-red'}">${passed}/${tests.length} passed</span></span>
+${tests.filter(t => !t.pass).map(t => `<span class="note c-red">✗ ${esc(t.name)}</span>`).join('')}
+<span class="note">Storage: ${persisted === true ? '<span class="c-mint">protected from auto-clear</span>' : persisted === false ? '<span class="c-gold">not protected yet; add the app to your Home Screen</span>' : 'unknown'} · Data version ${data.schemaVersion}</span></div>
+<button class="btn" data-act="close">Close</button>`);
+}
+function saveSettings() {
+  const readNum = el => Number(String(el.value).replace(/\D/g, ''));
+  const errs = [];
+  document.querySelectorAll('[data-budget]').forEach(el => { const v = readNum(el); if (!v || v > 1e11) errs.push(`Budget for ${pocketOf(el.dataset.budget).name} must be more than 0.`); });
+  document.querySelectorAll('[data-recday]').forEach(el => { const v = readNum(el); if (!(v >= 1 && v <= 31)) errs.push('Due day must be 1–31.'); });
+  const sal = readNum(document.querySelector('[data-recamt]')); if (!sal) errs.push('Salary must be more than 0.');
+  if (errs.length) return ask('Check the numbers', errs.join('\n'), 'OK', false, true);
+  document.querySelectorAll('[data-budget]').forEach(el => pocketOf(el.dataset.budget).budget = readNum(el));
+  document.querySelectorAll('[data-recday]').forEach(el => data.recurring.find(r => r.id === el.dataset.recday).schedule.day = readNum(el));
+  data.recurring.find(r => r.id === 'rec_salary').amount = sal;
+  const inv = data.recurring.find(r => r.id === 'rec_invest'); if (inv) inv.amount = pocketOf('pk_invest').budget;
+  const kos = data.recurring.find(r => r.id === 'rec_kosan'); if (kos) kos.amount = pocketOf('pk_rent').budget;
+  if (save()) { toast('Settings saved'); closeSheet(); render(); }
+}
+
+/* =========================================================
+   15. EVENTS (one listener for everything)
+   ========================================================= */
+document.addEventListener('click', async e => {
+  const el = e.target.closest('button, [data-go], [data-tx]'); if (!el) return;
+  const ds = el.dataset;
+  if (el.id === 'fab') return openAdd();
+  if (ds.tab) { tab = ds.tab; showAll = false; render(); window.scrollTo(0, 0); return; }
+  if (ds.go) { tab = ds.go; render(); window.scrollTo(0, 0); return; }
+  if (ds.period) { moneyPeriod = ds.period; render(); return; }
+  if (ds.tx) return showTx(ds.tx);
+  if (ds.type) { draft.type = ds.type; drawAdd(); return; }
+  if (ds.cat) { draft.categoryId = ds.cat; const c = catOf(ds.cat); if (c.pocketId) draft.pocketId = c.pocketId; drawAdd(); return; }
+  if (ds.pocket) { draft.pocketId = ds.pocket; drawAdd(); return; }
+  if (ds.due) { const r = data.recurring.find(x => x.id === ds.due), ym = todayStr().slice(0, 7);
+    return openAdd({ type: r.type, amount: r.amount, categoryId: r.categoryId, pocketId: r.pocketId || 'pk_basic', note: r.name, date: dueDate(r, ym) <= todayStr() ? dueDate(r, ym) : todayStr(), recurringId: r.id }); }
+  if (ds.skip) { const r = data.recurring.find(x => x.id === ds.skip);
+    if (await ask(`Skip ${r.name} this month?`, 'It will not be added, and the reminder comes back next month.', 'Skip')) { skipRecurring(r.id, todayStr().slice(0, 7)); render(); } return; }
+  if (ds.del) { const t = data.transactions.find(x => x.id === ds.del);
+    if (await ask('Delete this entry?', `${t.note || catOf(t.categoryId).name} · ${formatIDR(t.amount)} · ${niceDate(t.date)}\n\nThis cannot be undone (except by restoring a backup).`, 'Delete', true)) {
+      if (deleteRecord('transactions', t.id)) { closeSheet(); render(); toast('Deleted'); } } return; }
+  if (ds.export) return exportFile(EXPORTS[ds.export]());
+  switch (ds.act) {
+    case 'close': return closeSheet();
+    case 'saveTx': return saveTx();
+    case 'addAnother': return openAdd();
+    case 'settings': return openSettings();
+    case 'saveSettings': return saveSettings();
+    case 'import': return document.getElementById('importFile').click();
+    case 'toggleAll': showAll = !showAll; return render();
+  }
+});
+document.getElementById('importFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) importBackup(f); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !document.querySelector('.overlay.open')) render(); });
+
+/* =========================================================
+   16. START
+   ========================================================= */
+load();
+render();
+askPersistentStorage().then(v => { persisted = v; });
+</script>
+</body>
+</html>
