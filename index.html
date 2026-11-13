@@ -25,7 +25,9 @@ body { font: 15px/1.4 Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-
   -webkit-text-size-adjust: 100%; overscroll-behavior-y: none; }
 b { font-weight: 600; color: var(--ink); }
 button { font: inherit; color: inherit; cursor: pointer; border-radius: 0; }
-button:active { transform: translate(1px, 1px); }
+button { transition: transform .12s ease, background-color .15s ease, border-color .15s ease, color .15s ease; }
+button:active { transform: scale(.96); }
+.card.tap { transition: transform .12s ease; } .card.tap:active { transform: scale(.98); }
 input, select { font: inherit; font-size: 16px; color: var(--ink); background: var(--bg); border: 2px solid var(--line); border-radius: 0; }
 input:focus, select:focus { outline: none; border-color: var(--gold); }
 
@@ -101,8 +103,23 @@ input:focus, select:focus { outline: none; border-color: var(--gold); }
   border: 2px solid var(--edge); background: var(--gold); color: var(--bg); font-size: 32px; line-height: 1; font-weight: 600; box-shadow: 4px 4px 0 #0E0E17; }
 
 /* sheets */
-.overlay { position: fixed; inset: 0; background: #000b; display: none; align-items: flex-end; justify-content: center; z-index: 10; }
-.overlay.open { display: flex; }
+.overlay { position: fixed; inset: 0; background: #000b; display: flex; align-items: flex-end; justify-content: center; z-index: 10;
+  opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .28s ease, visibility 0s linear .38s; }
+.overlay.open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .28s ease; }
+.overlay .sheet { transform: translateY(100%); transition: transform .42s cubic-bezier(.32, .72, 0, 1); will-change: transform; }
+.overlay.open .sheet { transform: none; }
+.swap > * { animation: swap .28s cubic-bezier(.32, .72, 0, 1) both; }
+@keyframes swap { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+#screen.enter > * { animation: enter .32s cubic-bezier(.32, .72, 0, 1) both; }
+#screen.enter > :nth-child(2) { animation-delay: .03s; } #screen.enter > :nth-child(3) { animation-delay: .06s; }
+#screen.enter > :nth-child(4) { animation-delay: .09s; } #screen.enter > :nth-child(n+5) { animation-delay: .12s; }
+@keyframes enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.prstage { position: relative; height: 190px; overflow: hidden; }
+.prf { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: flex-end; opacity: 0; transition: opacity .2s linear; transform-origin: 50% 85%; }
+.prf.on { opacity: 1; }
+.prf.pop { animation: pop .5s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes pop { from { transform: scale(.82); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .overlay, .overlay .sheet, .prf { transition: none; } .swap > *, #screen.enter > *, .prf.pop { animation: none; } }
 .sheet { width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; background: var(--panel); border-top: 2px solid var(--edge);
   padding: 18px 16px calc(env(safe-area-inset-bottom) + 18px); display: flex; flex-direction: column; gap: 14px; }
 .sheet h3 { margin: 0; font-family: var(--serif); font-size: 22px; line-height: 28px; font-weight: 600; }
@@ -132,8 +149,8 @@ input:focus, select:focus { outline: none; border-color: var(--gold); }
 svg { display: block; flex: none; }
 #banner { display: none; background: #5A2430; color: #fff; padding: 12px; font-weight: 600; font-size: 14px; border: 2px solid var(--red); }
 #toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 12px); transform: translateX(-50%); z-index: 20;
-  background: #0E0E17; border: 2px solid var(--edge); color: var(--ink); padding: 10px 16px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 90vw; text-align: center; }
-#toast.show { opacity: 1; }
+  background: #0E0E17; border: 2px solid var(--edge); color: var(--ink); padding: 10px 16px; font-size: 14px; opacity: 0; transition: opacity .25s ease, transform .35s cubic-bezier(.32, .72, 0, 1); transform: translate(-50%, -16px); pointer-events: none; max-width: 90vw; text-align: center; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
 .empty { text-align: center; color: var(--muted); font-size: 13px; padding: 10px 0; }
 </style>
 </head>
@@ -606,7 +623,13 @@ function ask(title, msg, okLabel = 'OK', danger = false, infoOnly = false) {
     ok.onclick = () => done(true); cancel.onclick = () => done(false);
   });
 }
-function openSheet(html) { document.getElementById('sheetBody').innerHTML = html; document.getElementById('sheet').classList.add('open'); }
+function openSheet(html) {
+  const body = document.getElementById('sheetBody'), ov = document.getElementById('sheet'), wasOpen = ov.classList.contains('open');
+  body.innerHTML = html; body.classList.remove('swap');
+  if (wasOpen) { void body.offsetWidth; body.classList.add('swap'); } // content changes inside an open sheet fade in
+  ov.classList.add('open');
+}
+function go(t) { tab = t; showAll = false; render(); const s = document.getElementById('screen'); s.classList.remove('enter'); void s.offsetWidth; s.classList.add('enter'); window.scrollTo(0, 0); }
 function closeSheet() { document.getElementById('sheet').classList.remove('open'); }
 document.getElementById('sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
 
@@ -986,17 +1009,24 @@ function showAfterEx({ entry, workout }) {
   if (entry.sets) pts.push(`${entry.muscle} today: <b>${sets} sets</b>, ${TIER_NAME[tierOf(sets)]}.`);
   pts.push(`This week: <b>${wk} of ${target}</b> workouts${wk >= target ? '. Target hit!' : '.'}`);
   const both = heroSvg('front', tiers) + heroSvg('back', tiers);
-  openSheet(`<div class="herobox" id="prStage" style="min-height:190px;align-items:flex-end">${pr ? px(SPRITES.pr[0], 3, [], 'New PR') : both}</div>
+  const frame = (i, cls = '') => `<span class="prf ${cls}">${px(SPRITES.pr[i], 3, [], 'New PR')}</span>`;
+  openSheet(`<div class="herobox${pr ? ' prstage' : ''}" id="prStage" style="min-height:190px;align-items:flex-end">${pr ? frame(0, 'on') : both}</div>
 ${say('lilo', pr ? 'NEW PR! Strong work.' : 'Logged. Keep going.', pts)}
 <div class="btns"><button class="btn" data-act="addEx">Add exercise</button><button class="btn primary" data-act="close">Done</button></div>`);
   clearInterval(prTimer);
   if (!pr) return;
   const stage = () => document.getElementById('prStage');
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { stage().innerHTML = px(SPRITES.pr[3], 3, [], 'New PR'); return; }
-  const seq = [0, 1, 2, 3, 3, 3, 3, 3, 4]; let i = 0;
-  prTimer = setInterval(() => { const s = stage(); i++;
-    if (!s || i >= seq.length) { clearInterval(prTimer); if (s) s.innerHTML = both; return; }
-    s.innerHTML = px(SPRITES.pr[seq[i]], 3, [], 'New PR'); }, 320);
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { stage().innerHTML = frame(3, 'on'); return; }
+  // frames cross-fade into each other; the "NEW PR!" frame pops in with a spring
+  const show = (html, cls) => { const s = stage(); if (!s) return false;
+    const old = [...s.children], wrap = document.createElement('div'); wrap.innerHTML = html; const n = wrap.firstElementChild; s.appendChild(n);
+    requestAnimationFrame(() => requestAnimationFrame(() => { n.classList.add('on'); if (cls) n.classList.add(cls); old.forEach(o => o.classList.remove('on')); }));
+    setTimeout(() => old.forEach(o => o.remove()), 260); return true; };
+  const seq = [1, 2, 3, null, null, null, 4, 'end']; let i = -1;
+  prTimer = setInterval(() => { i++; const f = seq[i];
+    if (f === null) return;
+    if (f === 'end' || i >= seq.length) { clearInterval(prTimer); show(`<span class="prf" style="gap:4px">${both}</span>`); return; }
+    if (!show(frame(f), f === 3 ? 'pop' : '')) clearInterval(prTimer); }, 300);
 }
 function showEntry(key) {
   const [wid, eid] = key.split(':'), w = data.workouts.find(x => x.id === wid), e = w && w.entries.find(x => x.id === eid); if (!e) return;
@@ -1096,8 +1126,8 @@ document.addEventListener('click', async e => {
     if (await ask('Delete this exercise?', 'It is removed from that workout. This cannot be undone (except by restoring a backup).', 'Delete', true)) { if (deleteExercise(wid, eid)) { closeSheet(); render(); toast('Deleted'); } } return; }
   if (ds.meal) { const m = data.meals.find(x => x.id === ds.meal);
     if (m && await ask('Delete this meal?', `${m.name} · ${m.time}`, 'Delete', true)) { if (deleteRecord('meals', m.id)) { render(); toast('Deleted'); } } return; }
-  if (ds.tab) { tab = ds.tab; showAll = false; render(); window.scrollTo(0, 0); return; }
-  if (ds.go) { tab = ds.go; render(); window.scrollTo(0, 0); return; }
+  if (ds.tab) return go(ds.tab);
+  if (ds.go) return go(ds.go);
   if (ds.period) { moneyPeriod = ds.period; render(); return; }
   if (ds.tx) return showTx(ds.tx);
   if (ds.type) { draft.type = ds.type; drawAdd(); return; }
